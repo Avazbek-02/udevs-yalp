@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/casbin/casbin"
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/jwt"
+	"github.com/casbin/casbin"
+	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var (
-			usertype string
+			userRole string
 
 			act = c.Request.Method
 			obj = c.FullPath()
@@ -22,22 +22,22 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 
 		token := c.GetHeader("Authorization")
 		if token == "" {
-			usertype = "unauthorized"
+			userRole = "unauthorized"
 		}
 
-		if usertype == "" {
+		if userRole == "" {
 			token = strings.TrimPrefix(token, "Bearer ")
 
 			claims, err := jwt.ParseJWT(token, h.Config.JWT.Secret)
 			if err != nil {
-				usertype = "unauthorized"
+				userRole = "unauthorized"
 			}
 
-			v, ok := claims["user_type"].(string)
+			v, ok := claims["user_role"].(string)
 			if !ok {
-				usertype = "unauthorized"
+				userRole = "unauthorized"
 			} else {
-				usertype = v
+				userRole = v
 			}
 
 			for key, value := range claims {
@@ -47,7 +47,7 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 
 		// TO DO: Check if session is valid
 
-		if usertype != "unauthorized" {
+		if userRole != "unauthorized" {
 			session, err := h.UseCase.SessionRepo.GetSingle(c, entity.Id{ID: c.GetHeader("session_id")})
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session is invalid"})
@@ -60,7 +60,7 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 			}
 		}
 
-		ok, err := e.EnforceSafe(usertype, obj, act)
+		ok, err := e.EnforceSafe(userRole, obj, act)
 		if err != nil {
 			h.Logger.Error(err, "Error enforcing policy")
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "access denied"})

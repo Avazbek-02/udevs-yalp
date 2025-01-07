@@ -1,16 +1,15 @@
 services:
   app:
     build: .
-    container_name: openbudget
+    container_name: udevs-yalp
     env_file:
       - .env
     ports:
       - 8080:8080
     networks:
-      - openbudget
+      - udevslabs-yalp
 
 
 networks:
-  openbudget: 
+  udevslabs-yalp: 
     external: true
-

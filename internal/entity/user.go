@@ -5,9 +5,12 @@ type User struct {
 	FullName    string `json:"full_name"`
 	Username    string `json:"username"`
 	Password    string `json:"password"`
-	PhoneNumber string `json:"phone_number"`
 	UserType    string `json:"user_type"`
+	UserRole    string `json:"user_role"`
 	Status      string `json:"status"`
+	Gender      string `json:"gender"`
+	Bio     	string `json:"bio"`
+	Profile_picture    string `json:"profile_picture"`
 	AccessToken string `json:"access_token"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
