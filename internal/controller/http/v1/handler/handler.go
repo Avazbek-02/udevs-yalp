@@ -2,9 +2,9 @@ package handler
 
 import (
 	rediscache "github.com/golanguzb70/redis-cache"
-	"github.com/golanguzb70/system-design-openbudget/config"
-	"github.com/golanguzb70/system-design-openbudget/internal/usecase"
-	"github.com/golanguzb70/system-design-openbudget/pkg/logger"
+	"github.com/Avazbek-02/udevslab-lesson6/config"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
 )
 
 type Handler struct {

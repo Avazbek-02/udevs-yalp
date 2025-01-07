@@ -12,11 +12,11 @@ import (
 
 	// Swagger docs.
 	rediscache "github.com/golanguzb70/redis-cache"
-	"github.com/golanguzb70/system-design-openbudget/config"
-	_ "github.com/golanguzb70/system-design-openbudget/docs"
-	"github.com/golanguzb70/system-design-openbudget/internal/controller/http/v1/handler"
-	"github.com/golanguzb70/system-design-openbudget/internal/usecase"
-	"github.com/golanguzb70/system-design-openbudget/pkg/logger"
+	"github.com/Avazbek-02/udevslab-lesson6/config"
+	_ "github.com/Avazbek-02/udevslab-lesson6/docs"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/controller/http/v1/handler"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
 )
 
 // NewRouter -.

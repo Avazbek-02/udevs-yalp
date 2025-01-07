@@ -7,8 +7,8 @@ import (
 
 	"github.com/casbin/casbin"
 	"github.com/gin-gonic/gin"
-	"github.com/golanguzb70/system-design-openbudget/internal/entity"
-	"github.com/golanguzb70/system-design-openbudget/pkg/jwt"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/jwt"
 )
 
 func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {

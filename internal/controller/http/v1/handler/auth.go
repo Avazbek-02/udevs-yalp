@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golanguzb70/system-design-openbudget/config"
-	"github.com/golanguzb70/system-design-openbudget/internal/entity"
-	"github.com/golanguzb70/system-design-openbudget/pkg/etc"
-	"github.com/golanguzb70/system-design-openbudget/pkg/hash"
-	"github.com/golanguzb70/system-design-openbudget/pkg/jwt"
+	"github.com/Avazbek-02/udevslab-lesson6/config"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/etc"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/hash"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/jwt"
 )
 
 // Login godoc
