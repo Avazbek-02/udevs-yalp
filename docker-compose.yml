@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: openbudget
+    env_file:
+      - .env
+    ports:
+      - 8080:8080
+    networks:
+      - openbudget
+
+
+networks:
+  openbudget: 
+    external: true
+

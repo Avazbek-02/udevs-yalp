@@ -1,0 +1,21 @@
+
+p, unauthorized, /swagger/*, GET
+p, unauthorized, /v1/auth/login-admin, POST
+p, client, /v1/auth/logout, POST
+p, unauthorized, /v1/auth/login, POST
+p, unauthorized, /v1/auth/register, POST
+p, unauthorized, /v1/auth/verify-phone, POST
+p, client, /v1/user/*, PUT|DELETE
+p, client, /v1/user/:id, GET
+p, admin, /v1/user/*, GET|POST|PUT|DELETE
+p, client, /v1/session/*, GET|DELETE
+p, admin, /v1/session/*, GET|POST|PUT|DELETE
+
+p, admin, /v1/cycle/*, GET|POST|PUT|DELETE
+p, client, /v1/project/*, GET|POST|PUT
+p, admin, /v1/project/*, DELETE
+p, client, /v1/vote/*, GET|POST|PUT 
+p, admin, /v1/vote/*, DELETE
+
+g, client, unauthorized
+g, admin, client

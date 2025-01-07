@@ -1,0 +1,29 @@
+services:
+  openbudgetdb:
+    image: postgres:latest
+    container_name: openbudgetdb
+    environment:
+      POSTGRES_USER: openbudgetdb
+      POSTGRES_PASSWORD: openbudgetdb_secret
+      POSTGRES_DB: openbudgetdb
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - openbudget
+
+  openbudget-redis:
+    image: redis:latest
+    container_name: openbudget-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - openbudget
+      
+networks:
+  openbudget: 
+    external: true
+
+volumes:
+  postgres_data:
