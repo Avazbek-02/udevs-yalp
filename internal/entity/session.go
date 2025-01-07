@@ -7,6 +7,7 @@ type Session struct {
 	UserAgent    string `json:"user_agent"`
 	IsActive     bool   `json:"is_active"`
 	ExpiresAt    string `json:"expires_at"`
+	Platform     string `json:"platform"`
 	LastActiveAt string `json:"last_active_at"`
 	CreatedAt    string `json:"created_at"`
 	UpdatedAt    string `json:"updated_at"`
@@ -14,5 +15,5 @@ type Session struct {
 
 type SessionList struct {
 	Items []Session `json:"sessions"`
-	Count    int       `json:"count"`
+	Count int       `json:"count"`
 }

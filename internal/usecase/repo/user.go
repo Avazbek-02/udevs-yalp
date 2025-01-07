@@ -30,14 +30,15 @@ func NewUserRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Lo
 func (r *UserRepo) Create(ctx context.Context, req entity.User) (entity.User, error) {
 	req.ID = uuid.NewString()
 
-	qeury, args, err := r.pg.Builder.Insert("auth_user").
-		Columns(`id, full_name, phone_number, username, password, user_type, status`).
-		Values(req.ID, req.FullName, req.PhoneNumber, req.Username, req.Password, req.UserType, req.Status).ToSql()
+	query, args, err := r.pg.Builder.Insert("users").
+		Columns(`id, user_type, user_role, email, password, username, full_name, gender, profile_picture, bio, status`).
+		Values(req.ID, req.UserType, req.UserRole, req.Email, req.Password, req.Username, req.FullName, req.Gender,
+			req.Profile_picture, req.Bio, req.Status).ToSql()
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	_, err = r.pg.Pool.Exec(ctx, qeury, args...)
+	_, err = r.pg.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -47,33 +48,29 @@ func (r *UserRepo) Create(ctx context.Context, req entity.User) (entity.User, er
 
 func (r *UserRepo) GetSingle(ctx context.Context, req entity.UserSingleRequest) (entity.User, error) {
 	response := entity.User{}
-	var (
-		createdAt, updatedAt time.Time
-	)
+	var createdAt, updatedAt time.Time
 
-	qeuryBuilder := r.pg.Builder.
-		Select(`id, full_name, phone_number, username, password, user_type, status, created_at, updated_at`).
-		From("auth_user")
+	queryBuilder := r.pg.Builder.
+		Select(`id, user_type, user_role, email, password, username, full_name, gender, profile_picture, bio, status, created_at, updated_at`).
+		From("users")
 
 	switch {
 	case req.ID != "":
-		qeuryBuilder = qeuryBuilder.Where("id = ?", req.ID)
-	case req.PhoneNumber != "" && req.UserType != "":
-		qeuryBuilder = qeuryBuilder.Where("phone_number = ? AND user_type = ?", req.PhoneNumber, req.UserType)
-	case req.UserName != "":
-		qeuryBuilder = qeuryBuilder.Where("username = ?", req.UserName)
+		queryBuilder = queryBuilder.Where("id = ?", req.ID)
+	case req.Email != "":
+		queryBuilder = queryBuilder.Where("email = ?", req.Email)
 	default:
 		return entity.User{}, fmt.Errorf("GetSingle - invalid request")
 	}
 
-	qeury, args, err := qeuryBuilder.ToSql()
+	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	err = r.pg.Pool.QueryRow(ctx, qeury, args...).
-		Scan(&response.ID, &response.FullName, &response.PhoneNumber, &response.Username, &response.Password,
-			&response.UserType, &response.Status, &createdAt, &updatedAt)
+	err = r.pg.Pool.QueryRow(ctx, query, args...).
+		Scan(&response.ID, &response.UserType, &response.UserRole, &response.Email, &response.Password, &response.Username,
+			&response.FullName, &response.Gender, &response.Profile_picture, &response.Bio, &response.Status, &createdAt, &updatedAt)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -84,23 +81,27 @@ func (r *UserRepo) GetSingle(ctx context.Context, req entity.UserSingleRequest) 
 	return response, nil
 }
 
-func (r *UserRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.UserList, error) {
+func (r *UserRepo) GetList(ctx context.Context, req entity.UserSingleRequest) (entity.UserList, error) {
 	var (
 		response             = entity.UserList{}
 		createdAt, updatedAt time.Time
 	)
 
-	qeuryBuilder := r.pg.Builder.
-		Select(`id, full_name, phone_number, username, password, user_type, status, created_at, updated_at`).
-		From("auth_user")
+	queryBuilder := r.pg.Builder.
+		Select(`id, user_type, user_role, email, password, username, full_name, gender, profile_picture, bio, status, created_at, updated_at`).
+		From("users")
 
-	qeuryBuilder, where := PrepareGetListQuery(qeuryBuilder, req)
-	qeury, args, err := qeuryBuilder.ToSql()
+	// Add filters if necessary, for example, by status or user_type
+	if req.UserType != "" {
+		queryBuilder = queryBuilder.Where("user_type = ?", req.UserType)
+	}
+
+	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
-	rows, err := r.pg.Pool.Query(ctx, qeury, args...)
+	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
@@ -108,8 +109,8 @@ func (r *UserRepo) GetList(ctx context.Context, req entity.GetListFilter) (entit
 
 	for rows.Next() {
 		var item entity.User
-		err = rows.Scan(&item.ID, &item.FullName, &item.PhoneNumber, &item.Username, &item.Password,
-			&item.UserType, &item.Status, &createdAt, &updatedAt)
+		err = rows.Scan(&item.ID, &item.UserType, &item.UserRole, &item.Email, &item.Password, &item.Username,
+			&item.FullName, &item.Gender, &item.Profile_picture, &item.Bio, &item.Status, &createdAt, &updatedAt)
 		if err != nil {
 			return response, err
 		}
@@ -120,7 +121,7 @@ func (r *UserRepo) GetList(ctx context.Context, req entity.GetListFilter) (entit
 		response.Items = append(response.Items, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("auth_user").Where(where).ToSql()
+	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("users").ToSql()
 	if err != nil {
 		return response, err
 	}
@@ -135,22 +136,24 @@ func (r *UserRepo) GetList(ctx context.Context, req entity.GetListFilter) (entit
 
 func (r *UserRepo) Update(ctx context.Context, req entity.User) (entity.User, error) {
 	mp := map[string]interface{}{
-		"full_name":    req.FullName,
-		"phone_number": req.PhoneNumber,
-		"username":     req.Username,
-		"status":       req.Status,
+		"user_type":       req.UserType,
+		"user_role":       req.UserRole,
+		"email":           req.Email,
+		"password":        req.Password,
+		"username":        req.Username,
+		"full_name":       req.FullName,
+		"gender":          req.Gender,
+		"profile_picture": req.Profile_picture,
+		"bio":             req.Bio,
+		"status":          req.Status,
 	}
 
-	if req.Password != "" {
-		mp["password"] = req.Password
-	}
-
-	qeury, args, err := r.pg.Builder.Update("auth_user").SetMap(mp).Where("id = ?", req.ID).ToSql()
+	query, args, err := r.pg.Builder.Update("users").SetMap(mp).Where("id = ?", req.ID).ToSql()
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	_, err = r.pg.Pool.Exec(ctx, qeury, args...)
+	_, err = r.pg.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -158,39 +161,16 @@ func (r *UserRepo) Update(ctx context.Context, req entity.User) (entity.User, er
 	return req, nil
 }
 
-func (r *UserRepo) Delete(ctx context.Context, req entity.Id) error {
-	qeury, args, err := r.pg.Builder.Delete("auth_user").Where("id = ?", req.ID).ToSql()
+func (r *UserRepo) Delete(ctx context.Context, req entity.UserSingleRequest) error {
+	query, args, err := r.pg.Builder.Delete("users").Where("id = ?", req.ID).ToSql()
 	if err != nil {
 		return err
 	}
 
-	_, err = r.pg.Pool.Exec(ctx, qeury, args...)
+	_, err = r.pg.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (r *UserRepo) UpdateField(ctx context.Context, req entity.UpdateFieldRequest) (entity.RowsEffected, error) {
-	mp := map[string]interface{}{}
-	response := entity.RowsEffected{}
-
-	for _, item := range req.Items {
-		mp[item.Column] = item.Value
-	}
-
-	qeury, args, err := r.pg.Builder.Update("auth_user").SetMap(mp).Where(PrepareFilter(req.Filter)).ToSql()
-	if err != nil {
-		return response, err
-	}
-
-	n, err := r.pg.Pool.Exec(ctx, qeury, args...)
-	if err != nil {
-		return response, err
-	}
-
-	response.RowsEffected = int(n.RowsAffected())
-
-	return response, nil
 }
