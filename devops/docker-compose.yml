@@ -1,27 +1,29 @@
 services:
-  openbudgetdb:
+  yalpdb:
     image: postgres:latest
-    container_name: openbudgetdb
+    container_name: yalpdb
     environment:
-      POSTGRES_USER: openbudgetdb
-      POSTGRES_PASSWORD: openbudgetdb_secret
-      POSTGRES_DB: openbudgetdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: yalp
     ports:
       - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - openbudget
+      - yalp  
 
-  openbudget-redis:
+  yalp-redis:
     image: redis:latest
-    container_name: openbudget-redis
+    container_name: yalp-redis
     ports:
-      - "6379:6379"
+      - "6378:6379"
     networks:
-      - openbudget
-      
+      - yalp  
+
 networks:
+  yalp: 
+    driver: bridge 
   openbudget: 
     external: true
 
