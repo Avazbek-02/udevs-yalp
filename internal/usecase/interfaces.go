@@ -4,7 +4,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/golanguzb70/system-design-openbudget/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
 )
 
 //go:generate mockgen -source=interfaces.go -destination=./mocks_test.go -package=usecase_test

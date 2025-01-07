@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/golanguzb70/system-design-openbudget/config"
-	"github.com/golanguzb70/system-design-openbudget/internal/entity"
-	"github.com/golanguzb70/system-design-openbudget/pkg/logger"
-	"github.com/golanguzb70/system-design-openbudget/pkg/postgres"
+	"github.com/Avazbek-02/udevslab-lesson6/config"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/postgres"
 	"github.com/google/uuid"
 )
 

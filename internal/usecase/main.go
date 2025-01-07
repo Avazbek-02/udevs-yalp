@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"github.com/golanguzb70/system-design-openbudget/config"
-	"github.com/golanguzb70/system-design-openbudget/internal/usecase/repo"
-	"github.com/golanguzb70/system-design-openbudget/pkg/logger"
-	"github.com/golanguzb70/system-design-openbudget/pkg/postgres"
+	"github.com/Avazbek-02/udevslab-lesson6/config"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase/repo"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/postgres"
 )
 
 // UseCase -.

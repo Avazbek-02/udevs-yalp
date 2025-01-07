@@ -2,7 +2,7 @@ package repo
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/golanguzb70/system-design-openbudget/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
 )
 
 func PrepareFilter(filters []entity.Filter) squirrel.And {
