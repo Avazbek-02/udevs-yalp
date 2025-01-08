@@ -4,10 +4,13 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	// migrate tools
+	"github.com/joho/godotenv"
+
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -18,18 +21,24 @@ const (
 )
 
 func init() {
+	var (
+		attempts = _defaultAttempts
+		err      error
+		m        *migrate.Migrate
+	)
+	_, b, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Join(filepath.Dir(b), "../..")
+	err = godotenv.Load(filepath.Join(projectRoot, ".env"))
+	if err != nil {
+		log.Printf("Warning: Could not load .env file: %v", err)
+	}
+
 	databaseURL, ok := os.LookupEnv("PG_URL")
 	if !ok || len(databaseURL) == 0 {
 		log.Fatalf("migrate: environment variable not declared: PG_URL")
 	}
 
 	databaseURL += "?sslmode=disable"
-
-	var (
-		attempts = _defaultAttempts
-		err      error
-		m        *migrate.Migrate
-	)
 
 	for attempts > 0 {
 		m, err = migrate.New("file://migrations", databaseURL)

@@ -10,7 +10,7 @@ import (
 )
 
 // CreateUser godoc
-// @Router /v1/user/ [post]
+// @Router /user [post]
 // @Summary Create a new user
 // @Description Create a new user
 // @Security BearerAuth
@@ -68,7 +68,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	if h.HandleDbError(ctx, err, "Error getting user") {
 		return
 	}
-	user.Password = ""
+	user.Password = " "
 	ctx.JSON(200, user)
 }
 

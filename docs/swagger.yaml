@@ -7,6 +7,28 @@ definitions:
       message:
         type: string
     type: object
+  entity.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      platform:
+        type: string
+    type: object
+  entity.RegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      gender:
+        type: string
+      password:
+        type: string
+      user_name:
+        type: string
+    type: object
   entity.Session:
     properties:
       created_at:
@@ -84,13 +106,120 @@ definitions:
           $ref: '#/definitions/entity.User'
         type: array
     type: object
-host: localhost:8080
+  entity.VerifyEmail:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+      platform:
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a sample server Go Clean Template server.
   title: Go Clean Template API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: Register
+      tags:
+      - auth
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.VerifyEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      summary: Register
+      tags:
+      - auth
   /session:
     put:
       consumes:
@@ -209,6 +338,33 @@ paths:
       tags:
       - session
   /user:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/entity.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - user
     put:
       consumes:
       - application/json
@@ -323,34 +479,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a list of users
-      tags:
-      - user
-  /v1/user/:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user
-      parameters:
-      - description: User object
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/entity.User'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/entity.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new user
       tags:
       - user
 securityDefinitions:

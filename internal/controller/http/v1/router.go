@@ -4,7 +4,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/casbin/casbin"
+	// "github.com/casbin/casbin"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
@@ -24,7 +24,6 @@ import (
 // @title       Go Clean Template API
 // @description This is a sample server Go Clean Template server.
 // @version     1.0
-// @host        localhost:8080
 // @BasePath    /v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
@@ -37,8 +36,8 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	handlerV1 := handler.NewHandler(l, config, useCase, redis)
 
 	// Initialize Casbin enforcer
-	e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
-	engine.Use(handlerV1.AuthMiddleware(e))
+	// e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
+	// engine.Use(handlerV1.AuthMiddleware(e))
 
 	// Swagger
 	url := ginSwagger.URL("swagger/doc.json") // The url pointing to API definition
@@ -70,5 +69,11 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		session.DELETE("/:id", handlerV1.DeleteSession)
 	}
 
-	
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/logout", handlerV1.Logout)
+		auth.POST("/register", handlerV1.Register)
+		auth.POST("/verify-email", handlerV1.VerifyEmail)
+		auth.POST("/login", handlerV1.Login)
+	}
 }

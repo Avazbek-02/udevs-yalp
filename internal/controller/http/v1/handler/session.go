@@ -56,7 +56,7 @@ func (h *Handler) GetSessions(ctx *gin.Context) {
 	limit := ctx.DefaultQuery("limit", "10")
 	userId := ctx.DefaultQuery("user_id", "")
 
-	if ctx.GetHeader("user_type") == "client" {
+	if ctx.GetHeader("user_type") == "user" {
 		userId = ctx.GetHeader("sub")
 	}
 
@@ -75,12 +75,12 @@ func (h *Handler) GetSessions(ctx *gin.Context) {
 		Order:  "desc",
 	})
 
-	users, err := h.UseCase.SessionRepo.GetList(ctx, req)
-	if h.HandleDbError(ctx, err, "Error getting users") {
+	sessions, err := h.UseCase.SessionRepo.GetList(ctx, req)
+	if h.HandleDbError(ctx, err, "Error getting session") {
 		return
 	}
 
-	ctx.JSON(200, users)
+	ctx.JSON(200, sessions)
 }
 
 // UpdateSession godoc

@@ -11,7 +11,7 @@ type User struct {
 	Status          string `json:"status"`
 	Gender          string `json:"gender"`
 	Bio             string `json:"bio"`
-	Profile_picture string `json:"profile_picture"`
+	AvatarId string `json:"profile_picture"`
 	AccessToken     string `json:"access_token"`
 	CreatedAt       string `json:"created_at"`
 	UpdatedAt       string `json:"updated_at"`

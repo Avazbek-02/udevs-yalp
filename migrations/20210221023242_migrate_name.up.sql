@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS "users" (
   "username" VARCHAR(255) not null,
   "full_name" VARCHAR(255) not null,
   "gender" gender NOT NULL DEFAULT 'male',
-  "profile_picture" VARCHAR(255),
-  "bio" TEXT,
+  "avatar_id" VARCHAR(255) UNIQUE,
+  "bio" TEXT DEFAULT ' ',
   "status" user_status NOT NULL DEFAULT 'inverify',
   "created_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS "sessions" (
   "user_agent" TEXT NOT NULL,
   "platform" platform NOT NULL,
   "ip_address" VARCHAR(64) NOT NULL,
+  "is_active" bool NOT NULL,
+  "expires_at" timestamp,
+  "last_active_at" timestamp,
   "created_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
 );

@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -38,7 +39,7 @@ func (r *SessionRepo) Create(ctx context.Context, req entity.Session) (entity.Se
 
 	qeury, args, err := r.pg.Builder.Insert("sessions").
 		Columns(`id, user_id, ip_address, user_agent, is_active, expires_at, platform`).
-		Values(req.ID, req.UserID, req.IPAddress, req.UserAgent, req.IsActive, expireDate,req.Platform).ToSql()
+		Values(req.ID, req.UserID, req.IPAddress, req.UserAgent, req.IsActive, expireDate, req.Platform).ToSql()
 	if err != nil {
 		return entity.Session{}, err
 	}
@@ -54,10 +55,9 @@ func (r *SessionRepo) Create(ctx context.Context, req entity.Session) (entity.Se
 func (r *SessionRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Session, error) {
 	response := entity.Session{}
 	var (
-		createdAt, updatedAt, lastActiveAt time.Time
-		expiresAt                          sql.NullTime
+		createdAt, updatedAt    time.Time
+		expiresAt, lastActiveAt sql.NullTime
 	)
-
 	qeuryBuilder := r.pg.Builder.
 		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
 		From("sessions").Where("id = ?", req.ID)
@@ -76,9 +76,12 @@ func (r *SessionRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Sess
 
 	response.CreatedAt = createdAt.Format(time.RFC3339)
 	response.UpdatedAt = updatedAt.Format(time.RFC3339)
-	response.LastActiveAt = lastActiveAt.Format(time.RFC3339)
 	if expiresAt.Valid {
 		response.ExpiresAt = expiresAt.Time.Format(time.RFC3339)
+	}
+
+	if lastActiveAt.Valid {
+		response.LastActiveAt = lastActiveAt.Time.Format(time.RFC3339)
 	}
 
 	return response, nil
@@ -88,18 +91,20 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 	var (
 		response = entity.SessionList{}
 	)
-
+	
 	qeuryBuilder := r.pg.Builder.
 		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
 		From("sessions")
 
 	qeuryBuilder, where := PrepareGetListQuery(qeuryBuilder, req)
 	qeury, args, err := qeuryBuilder.ToSql()
+	fmt.Println(11111)
 	if err != nil {
 		return response, err
 	}
 
 	rows, err := r.pg.Pool.Query(ctx, qeury, args...)
+	fmt.Println(222222)
 	if err != nil {
 		return response, err
 	}
@@ -107,21 +112,26 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 
 	for rows.Next() {
 		var (
-			createdAt, updatedAt, lastActiveAt time.Time
-			expiresAt                          sql.NullTime
-			item                               entity.Session
+			createdAt, updatedAt    time.Time
+			expiresAt, lastActiveAt sql.NullTime
+			item                    entity.Session
 		)
+		
 		err = rows.Scan(&item.ID, &item.UserID, &item.IPAddress, &item.UserAgent,
 			&item.IsActive, &expiresAt, &lastActiveAt, &item.Platform, &createdAt, &updatedAt)
+		fmt.Println(":::::",item.ID)
 		if err != nil {
 			return response, err
 		}
 
 		item.CreatedAt = createdAt.Format(time.RFC3339)
 		item.UpdatedAt = updatedAt.Format(time.RFC3339)
-		item.LastActiveAt = lastActiveAt.Format(time.RFC3339)
 		if expiresAt.Valid {
 			item.ExpiresAt = expiresAt.Time.Format(time.RFC3339)
+		}
+
+		if lastActiveAt.Valid {
+			item.LastActiveAt = lastActiveAt.Time.Format(time.RFC3339)
 		}
 
 		response.Items = append(response.Items, item)
