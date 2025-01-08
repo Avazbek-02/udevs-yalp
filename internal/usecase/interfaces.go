@@ -17,7 +17,6 @@ type (
 		GetList(ctx context.Context, req entity.GetListFilter) (entity.UserList, error)
 		Update(ctx context.Context, req entity.User) (entity.User, error)
 		Delete(ctx context.Context, req entity.Id) error
-		UpdateField(ctx context.Context, req entity.UpdateFieldRequest) (entity.RowsEffected, error)
 	}
 
 	// SessionRepo -.

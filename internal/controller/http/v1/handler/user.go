@@ -63,16 +63,12 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 
 	req.ID = ctx.Param("id")
 
-	userType := ctx.GetHeader("user_type")
-	if userType == "client" {
-		req.ID = ctx.GetHeader("sub")
-	}
 
 	user, err := h.UseCase.UserRepo.GetSingle(ctx, req)
 	if h.HandleDbError(ctx, err, "Error getting user") {
 		return
 	}
-
+	user.Password = ""
 	ctx.JSON(200, user)
 }
 
@@ -112,7 +108,7 @@ func (h *Handler) GetUsers(ctx *gin.Context) {
 			Value:  search,
 		},
 		entity.Filter{
-			Column: "phone_number",
+			Column: "email",
 			Type:   "search",
 			Value:  search,
 		},
@@ -153,7 +149,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	if ctx.GetHeader("user_type") == "client" {
+	if ctx.GetHeader("user_type") == "user" {
 		body.ID = ctx.GetHeader("sub")
 	}
 
@@ -191,8 +187,8 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 
 	req.ID = ctx.Param("id")
 
-	if ctx.GetHeader("user_type") == "client" {
-		req.ID = ctx.GetHeader("user_id")
+	if ctx.GetHeader("user_type") == "user" {
+		req.ID = ctx.GetHeader("sub")
 	}
 
 	err := h.UseCase.UserRepo.Delete(ctx, req)

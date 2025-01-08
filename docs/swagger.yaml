@@ -1,29 +1,10 @@
 basePath: /v1
 definitions:
-  entity.ClientLoginRequest:
-    properties:
-      phone_number:
-        type: string
-    type: object
   entity.ErrorResponse:
     properties:
       code:
         type: string
       message:
-        type: string
-    type: object
-  entity.LoginRequest:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  entity.RegisterRequest:
-    properties:
-      full_name:
-        type: string
-      phone_number:
         type: string
     type: object
   entity.Session:
@@ -39,6 +20,8 @@ definitions:
       is_active:
         type: boolean
       last_active_at:
+        type: string
+      platform:
         type: string
       updated_at:
         type: string
@@ -65,19 +48,27 @@ definitions:
     properties:
       access_token:
         type: string
+      bio:
+        type: string
       created_at:
         type: string
+      email:
+        type: string
       full_name:
+        type: string
+      gender:
         type: string
       id:
         type: string
       password:
         type: string
-      phone_number:
+      profile_picture:
         type: string
       status:
         type: string
       updated_at:
+        type: string
+      user_role:
         type: string
       user_type:
         type: string
@@ -93,13 +84,6 @@ definitions:
           $ref: '#/definitions/entity.User'
         type: array
     type: object
-  entity.VerifyPhoneRequest:
-    properties:
-      otp:
-        type: string
-      phone_number:
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -107,131 +91,6 @@ info:
   title: Go Clean Template API
   version: "1.0"
 paths:
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Login
-      parameters:
-      - description: User
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.ClientLoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      summary: Login
-      tags:
-      - auth
-  /auth/login-admin:
-    post:
-      consumes:
-      - application/json
-      description: Login
-      parameters:
-      - description: User
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      summary: Login
-      tags:
-      - auth
-  /auth/logout:
-    post:
-      consumes:
-      - application/json
-      description: Logout
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Logout
-      tags:
-      - auth
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Register
-      parameters:
-      - description: User
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      summary: Register
-      tags:
-      - auth
-  /auth/verify-phone:
-    post:
-      consumes:
-      - application/json
-      description: Verify phone number
-      parameters:
-      - description: User
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/entity.VerifyPhoneRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/entity.ErrorResponse'
-      summary: Verify phone number
-      tags:
-      - auth
   /session:
     put:
       consumes:

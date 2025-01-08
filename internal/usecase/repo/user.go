@@ -81,7 +81,7 @@ func (r *UserRepo) GetSingle(ctx context.Context, req entity.UserSingleRequest) 
 	return response, nil
 }
 
-func (r *UserRepo) GetList(ctx context.Context, req entity.UserSingleRequest) (entity.UserList, error) {
+func (r *UserRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.UserList, error) {
 	var (
 		response             = entity.UserList{}
 		createdAt, updatedAt time.Time
@@ -91,11 +91,7 @@ func (r *UserRepo) GetList(ctx context.Context, req entity.UserSingleRequest) (e
 		Select(`id, user_type, user_role, email, password, username, full_name, gender, profile_picture, bio, status, created_at, updated_at`).
 		From("users")
 
-	// Add filters if necessary, for example, by status or user_type
-	if req.UserType != "" {
-		queryBuilder = queryBuilder.Where("user_type = ?", req.UserType)
-	}
-
+	// Add filters if necessary, for example, by status or user_type=
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
@@ -161,7 +157,7 @@ func (r *UserRepo) Update(ctx context.Context, req entity.User) (entity.User, er
 	return req, nil
 }
 
-func (r *UserRepo) Delete(ctx context.Context, req entity.UserSingleRequest) error {
+func (r *UserRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("users").Where("id = ?", req.ID).ToSql()
 	if err != nil {
 		return err

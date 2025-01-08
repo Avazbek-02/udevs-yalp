@@ -36,9 +36,9 @@ func (r *SessionRepo) Create(ctx context.Context, req entity.Session) (entity.Se
 		expireDate.Valid = true
 	}
 
-	qeury, args, err := r.pg.Builder.Insert("auth_session").
-		Columns(`id, user_id, ip_address, user_agent, is_active, expires_at`).
-		Values(req.ID, req.UserID, req.IPAddress, req.UserAgent, req.IsActive, expireDate).ToSql()
+	qeury, args, err := r.pg.Builder.Insert("sessions").
+		Columns(`id, user_id, ip_address, user_agent, is_active, expires_at, platform`).
+		Values(req.ID, req.UserID, req.IPAddress, req.UserAgent, req.IsActive, expireDate,req.Platform).ToSql()
 	if err != nil {
 		return entity.Session{}, err
 	}
@@ -59,8 +59,8 @@ func (r *SessionRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Sess
 	)
 
 	qeuryBuilder := r.pg.Builder.
-		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, created_at, updated_at`).
-		From("auth_session").Where("id = ?", req.ID)
+		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
+		From("sessions").Where("id = ?", req.ID)
 
 	qeury, args, err := qeuryBuilder.ToSql()
 	if err != nil {
@@ -69,7 +69,7 @@ func (r *SessionRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Sess
 
 	err = r.pg.Pool.QueryRow(ctx, qeury, args...).
 		Scan(&response.ID, &response.UserID, &response.IPAddress, &response.UserAgent,
-			&response.IsActive, &expiresAt, &lastActiveAt, &createdAt, &updatedAt)
+			&response.IsActive, &expiresAt, &lastActiveAt, &response.Platform, &createdAt, &updatedAt)
 	if err != nil {
 		return entity.Session{}, err
 	}
@@ -90,8 +90,8 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 	)
 
 	qeuryBuilder := r.pg.Builder.
-		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, created_at, updated_at`).
-		From("auth_session")
+		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
+		From("sessions")
 
 	qeuryBuilder, where := PrepareGetListQuery(qeuryBuilder, req)
 	qeury, args, err := qeuryBuilder.ToSql()
@@ -112,7 +112,7 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 			item                               entity.Session
 		)
 		err = rows.Scan(&item.ID, &item.UserID, &item.IPAddress, &item.UserAgent,
-			&item.IsActive, &expiresAt, &lastActiveAt, &createdAt, &updatedAt)
+			&item.IsActive, &expiresAt, &lastActiveAt, &item.Platform, &createdAt, &updatedAt)
 		if err != nil {
 			return response, err
 		}
@@ -127,7 +127,7 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 		response.Items = append(response.Items, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("auth_session").Where(where).ToSql()
+	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("sessions").Where(where).ToSql()
 	if err != nil {
 		return response, err
 	}
@@ -148,7 +148,7 @@ func (r *SessionRepo) Update(ctx context.Context, req entity.Session) (entity.Se
 		"updated_at":     "now()",
 	}
 
-	qeury, args, err := r.pg.Builder.Update("auth_session").SetMap(mp).Where("id = ?", req.ID).ToSql()
+	qeury, args, err := r.pg.Builder.Update("sessions").SetMap(mp).Where("id = ?", req.ID).ToSql()
 	if err != nil {
 		return entity.Session{}, err
 	}
@@ -162,7 +162,7 @@ func (r *SessionRepo) Update(ctx context.Context, req entity.Session) (entity.Se
 }
 
 func (r *SessionRepo) Delete(ctx context.Context, req entity.Id) error {
-	qeury, args, err := r.pg.Builder.Delete("auth_session").Where("id = ?", req.ID).ToSql()
+	qeury, args, err := r.pg.Builder.Delete("sessions").Where("id = ?", req.ID).ToSql()
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (r *SessionRepo) UpdateField(ctx context.Context, req entity.UpdateFieldReq
 		mp[item.Column] = item.Value
 	}
 
-	qeury, args, err := r.pg.Builder.Update("auth_session").SetMap(mp).Where(PrepareFilter(req.Filter)).ToSql()
+	qeury, args, err := r.pg.Builder.Update("sessions").SetMap(mp).Where(PrepareFilter(req.Filter)).ToSql()
 	if err != nil {
 		return response, err
 	}

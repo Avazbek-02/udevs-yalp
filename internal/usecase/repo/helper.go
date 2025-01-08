@@ -7,7 +7,7 @@ import (
 
 func PrepareFilter(filters []entity.Filter) squirrel.And {
 	where := squirrel.And{}
-
+	or := squirrel.Or{}
 	for _, e := range filters {
 		switch e.Type {
 		case "eq":
@@ -23,9 +23,10 @@ func PrepareFilter(filters []entity.Filter) squirrel.And {
 		case "lte":
 			where = append(where, squirrel.LtOrEq{e.Column: e.Value})
 		case "search":
-			where = append(where, squirrel.ILike{e.Column: "%" + e.Value + "%"})
+			or = append(or, squirrel.ILike{e.Column: "%" + e.Value + "%"})
 		}
 	}
+	where = append(where, or)
 
 	return where
 }
