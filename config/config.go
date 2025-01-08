@@ -15,6 +15,7 @@ type (
 		PG    `yaml:"postgres"`
 		JWT   `yaml:"jwt"`
 		Redis `yaml:"redis"`
+		Gmail `yaml:"gmail"`
 	}
 
 	// App -.

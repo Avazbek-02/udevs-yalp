@@ -14,7 +14,9 @@ type RegisterRequest struct {
 	Gender   string `json:"gender"`
 }
 
-type VerifyPhoneRequest struct {
-	Email string `json:"email"`
-	Otp   string `json:"otp"`
+
+type VerifyEmail struct {
+	Email    string `json:"email"`
+	Otp      string `json:"otp"`
+	Platform string `json:"platform"`
 }

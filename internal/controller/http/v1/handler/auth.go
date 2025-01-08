@@ -186,7 +186,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 		return
 	}
 
-	err = etc.SendEmail(h.Config.G.Host, h.Config.Gmail.Port, h.Config.Gmail.Email, h.Config.Gmail.EmailPass, body.Email, emailBody)
+	err = etc.SendEmail(h.Config.Gmail.Host, h.Config.Gmail.Port, h.Config.Gmail.Email, h.Config.Gmail.EmailPass, body.Email, emailBody)
 	if err != nil {
 		h.ReturnError(ctx, config.ErrorInternalServer, "Error sending OTP", 500)
 		return
