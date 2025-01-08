@@ -49,6 +49,13 @@ type (
 		RedisHost string `env-required:"true" yaml:"host" env:"REDIS_HOST"`
 		RedisPort int    `env-required:"true" yaml:"port" env:"REDIS_PORT"`
 	}
+
+	Gmail struct{
+		Email     string `env-required:"true" yaml:"email" env:"EMAIL"`
+		EmailPass string `env-required:"true" yaml:"email_pass" env:"EMAIL_PASS"`
+		Host      string `env-required:"true" yaml:"host" env:"SMTP_HOST"`
+		Port      string    `env-required:"true" yaml:"port" env:"SMTP_PORT"`
+	}
 )
 
 // NewConfig returns app config.

@@ -11,13 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
+
+
 func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var (
 			userRole string
-
-			act = c.Request.Method
-			obj = c.FullPath()
+			act      = c.Request.Method
+			obj      = c.FullPath()
 		)
 
 		token := c.GetHeader("Authorization")
@@ -50,12 +52,13 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 		if userRole != "unauthorized" {
 			session, err := h.UseCase.SessionRepo.GetSingle(c, entity.Id{ID: c.GetHeader("session_id")})
 			if err != nil {
+				fmt.Println("error while gettign single session", err)
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session is invalid"})
 				return
 			}
 
 			if !session.IsActive {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session is invalid"})
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session is not active"})
 				return
 			}
 		}

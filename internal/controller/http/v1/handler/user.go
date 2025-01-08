@@ -10,7 +10,7 @@ import (
 )
 
 // CreateUser godoc
-// @Router /user [post]
+// @Router /v1/user/ [post]
 // @Summary Create a new user
 // @Description Create a new user
 // @Security BearerAuth

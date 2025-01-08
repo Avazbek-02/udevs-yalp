@@ -3,6 +3,7 @@ package entity
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Platform string `json:"platform"`
 }
 
 type RegisterRequest struct {
@@ -10,9 +11,10 @@ type RegisterRequest struct {
 	Username string `json:"user_name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Gender   string `json:"gender"`
 }
 
 type VerifyPhoneRequest struct {
 	Email string `json:"email"`
-	Otp         string `json:"otp"`
+	Otp   string `json:"otp"`
 }

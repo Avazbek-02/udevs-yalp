@@ -70,12 +70,5 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		session.DELETE("/:id", handlerV1.DeleteSession)
 	}
 
-	// auth := v1.Group("/auth")
-	// {
-	// 	auth.POST("/login-admin", handlerV1.LoginAdmin)
-	// 	auth.POST("/logout", handlerV1.Logout)
-	// 	auth.POST("/register", handlerV1.Register)
-	// 	auth.POST("/verify-phone", handlerV1.VerifyPhone)
-	// 	auth.POST("/login", handlerV1.Login)
-	// }
+	
 }
