@@ -18,7 +18,7 @@ func GenerateOtpEmailBody(otp string) (string, error) {
 <!DOCTYPE html>
 <html>
 <body>
-    <p>Your Otp to verify your Mini twitter account {{.Code}},</p>
+    <p>Your Otp to verify your YELP account {{.Code}},</p>
 </body>
 </html>
 `

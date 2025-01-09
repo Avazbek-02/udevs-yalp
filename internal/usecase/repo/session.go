@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -91,20 +90,19 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 	var (
 		response = entity.SessionList{}
 	)
-	
+
 	qeuryBuilder := r.pg.Builder.
 		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
 		From("sessions")
 
 	qeuryBuilder, where := PrepareGetListQuery(qeuryBuilder, req)
 	qeury, args, err := qeuryBuilder.ToSql()
-	fmt.Println(11111)
 	if err != nil {
 		return response, err
 	}
 
 	rows, err := r.pg.Pool.Query(ctx, qeury, args...)
-	fmt.Println(222222)
+
 	if err != nil {
 		return response, err
 	}
@@ -116,10 +114,9 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 			expiresAt, lastActiveAt sql.NullTime
 			item                    entity.Session
 		)
-		
+
 		err = rows.Scan(&item.ID, &item.UserID, &item.IPAddress, &item.UserAgent,
 			&item.IsActive, &expiresAt, &lastActiveAt, &item.Platform, &createdAt, &updatedAt)
-		fmt.Println(":::::",item.ID)
 		if err != nil {
 			return response, err
 		}
