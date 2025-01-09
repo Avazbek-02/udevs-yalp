@@ -62,7 +62,7 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 				return
 			}
 		}
-
+		fmt.Println(userRole)
 		ok, err := e.EnforceSafe(userRole, obj, act)
 		if err != nil {
 			h.Logger.Error(err, "Error enforcing policy")

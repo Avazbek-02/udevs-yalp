@@ -4,7 +4,7 @@ package v1
 import (
 	"net/http"
 
-	// "github.com/casbin/casbin"
+	"github.com/casbin/casbin"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
@@ -36,8 +36,8 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	handlerV1 := handler.NewHandler(l, config, useCase, redis)
 
 	// Initialize Casbin enforcer
-	// e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
-	// engine.Use(handlerV1.AuthMiddleware(e))
+	e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
+	engine.Use(handlerV1.AuthMiddleware(e))
 
 	// Swagger
 	url := ginSwagger.URL("swagger/doc.json") // The url pointing to API definition
