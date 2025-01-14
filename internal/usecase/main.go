@@ -11,6 +11,10 @@ import (
 type UseCase struct {
 	UserRepo    UserRepoI
 	SessionRepo SessionRepoI
+	BusinessRepo BusinessRepoI
+	NotificationRepo NotificationRepoI
+	ReviewRepo ReviewRepoI
+	ReportRepo ReportRepoI
 }
 
 // New -.
@@ -18,5 +22,9 @@ func New(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *U
 	return &UseCase{
 		UserRepo:    repo.NewUserRepo(pg, config, logger),
 		SessionRepo: repo.NewSessionRepo(pg, config, logger),
+		BusinessRepo: repo.NewBusinessRepo(pg, config, logger),
+		NotificationRepo: repo.NewNotificationRepo(pg, config, logger),
+		ReviewRepo: repo.NewReviewRepo(pg, config, logger),
+		ReportRepo: repo.NewReportRepo(pg, config, logger),
 	}
 }

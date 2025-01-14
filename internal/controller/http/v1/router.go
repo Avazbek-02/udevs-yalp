@@ -35,21 +35,17 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 
 	handlerV1 := handler.NewHandler(l, config, useCase, redis)
 
-	// Initialize Casbin enforcer
 	e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
 	engine.Use(handlerV1.AuthMiddleware(e))
 
-	// Swagger
-	url := ginSwagger.URL("swagger/doc.json") // The url pointing to API definition
+
+	url := ginSwagger.URL("swagger/doc.json") 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
-	// K8s probe
 	engine.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
 
-	// Prometheus metrics
 	engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	// Routes
 	v1 := engine.Group("/v1")
 
 	user := v1.Group("/user")
@@ -76,4 +72,35 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		auth.POST("/verify-email", handlerV1.VerifyEmail)
 		auth.POST("/login", handlerV1.Login)
 	}
+	business := v1.Group("/business")
+	{
+		business.GET("/:id", handlerV1.GetBusiness)
+		business.GET("/list", handlerV1.GetBusinesses)
+		business.PUT("/", handlerV1.UpdateBusiness)
+		business.DELETE("/:id", handlerV1.DeleteBusiness)
+	}
+
+	review := v1.Group("/review")
+	{
+		review.GET("/:id", handlerV1.GetReview)
+		review.GET("/list", handlerV1.GetReviews)
+		review.PUT("/", handlerV1.UpdateReview)
+		review.DELETE("/:id", handlerV1.DeleteReview)
+	}
+
+	report := v1.Group("/report")
+	{
+		report.GET("/:id", handlerV1.GetReport)
+		report.GET("/list", handlerV1.GetReports)
+		report.PUT("/", handlerV1.UpdateReport)
+		report.DELETE("/:id", handlerV1.DeleteReport)
+	}
+
+	notification := v1.Group("/notification")
+	{
+		notification.GET("/list", handlerV1.GetNotifications)
+		notification.GET("/:id", handlerV1.GetNotification)
+		notification.DELETE("/:id", handlerV1.DeleteNotification)
+	}
+
 }

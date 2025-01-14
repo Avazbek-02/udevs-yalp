@@ -85,3 +85,9 @@ run-app: swag-v1
 
 create-mig:
 	migrate create -ext sql -dir migrations -seq yalp-businesses
+
+mig-down:
+	migrate -database 'postgres://postgres:1234@localhost:5432/yalp?sslmode=disable' -path ./migrations down
+
+mig-force:
+	migrate -database 'postgres://postgres:1234@localhost:5432/yalp?sslmode=disable' -path ./migrations force 1

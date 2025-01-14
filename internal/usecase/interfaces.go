@@ -28,4 +28,33 @@ type (
 		Delete(ctx context.Context, req entity.Id) error
 		UpdateField(ctx context.Context, req entity.UpdateFieldRequest) (entity.RowsEffected, error)
 	}
+	BusinessRepoI interface {
+		Create(ctx context.Context, req entity.Business) (entity.Business, error)
+		GetSingle(ctx context.Context, req entity.Id) (entity.Business, error)
+		GetList(ctx context.Context, req entity.GetListFilter) (entity.BusinessList, error)
+		Update(ctx context.Context, req entity.Business) (entity.Business, error)
+		Delete(ctx context.Context, req entity.Id) error
+	}
+	NotificationRepoI interface {
+		Create(ctx context.Context, req entity.Notification) (entity.Notification, error)
+		GetSingle(ctx context.Context, req entity.Id) (entity.Notification, error)
+		GetList(ctx context.Context, req entity.GetListFilter) (entity.NotificationList, error)
+		Update(ctx context.Context, req entity.Notification) (entity.Notification, error)
+		Delete(ctx context.Context, req entity.Id) error
+		UpdateStatus(ctx context.Context, req entity.Notification) (entity.Notification, error)
+	}
+	ReviewRepoI interface {
+		Create(ctx context.Context, req entity.Review) (entity.Review, error)
+		GetSingle(ctx context.Context, req entity.Id) (entity.Review, error)
+		GetList(ctx context.Context, req entity.GetListFilter) (entity.ReviewList, error)
+		Update(ctx context.Context, req entity.Review) (entity.Review, error)
+		Delete(ctx context.Context, req entity.Id) error
+	}
+	ReportRepoI interface {
+		Create(ctx context.Context, req entity.Report) (entity.Report, error)
+		GetSingle(ctx context.Context, req entity.Id) (entity.Report, error)
+		GetList(ctx context.Context, req entity.GetListFilter) (entity.ReportList, error)
+		Update(ctx context.Context, req entity.Report) (entity.Report, error)
+		Delete(ctx context.Context, req entity.Id) error
+	}
 )
