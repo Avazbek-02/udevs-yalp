@@ -82,3 +82,6 @@ stop-db:
 
 run-app: swag-v1
 	docker-compose up -d --build
+
+create-mig:
+	migrate create -ext sql -dir migrations -seq yalp-businesses

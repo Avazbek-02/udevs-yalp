@@ -1,5 +1,5 @@
 
-CREATE TYPE "user_type" AS ENUM ('user', 'admin');
+CREATE TYPE "user_type" AS ENUM ('user', 'admin','businessman');
 CREATE TYPE "user_role" AS ENUM ('user', 'admin', 'superadmin');
 CREATE TYPE "gender" AS ENUM ('male', 'female');
 CREATE TYPE "user_status" AS ENUM ('active', 'blocked', 'inverify');
@@ -32,4 +32,19 @@ CREATE TABLE IF NOT EXISTS "sessions" (
   "last_active_at" timestamp,
   "created_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+);
+
+INSERT INTO "users" (
+  "id", "user_type", "user_role", "email", "password_hash", 
+  "username", "full_name", "gender", "status"
+) VALUES (
+  'e1ebed26-59e6-4eb2-bd35-13d504e79cd3',
+  'admin',
+  'superadmin',
+  'apalonavalon@gmail.com',
+  '$2a$10$Bmk0SXUCNjc/3gA3R4/srOvzHabpNx/WvgHgfPtVKSEu3.9TTT54e',
+  'superadmin',
+  'Default Super Admin',
+  'male',
+  'active'
 );

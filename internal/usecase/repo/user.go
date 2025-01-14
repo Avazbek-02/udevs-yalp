@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -19,7 +20,7 @@ type UserRepo struct {
 	logger *logger.Logger
 }
 
-// New -.
+// New 
 func NewUserRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *UserRepo {
 	return &UserRepo{
 		pg:     pg,
@@ -50,6 +51,7 @@ func (r *UserRepo) GetSingle(ctx context.Context, req entity.UserSingleRequest) 
 	response := entity.User{}
 	var (
 		createdAt, updatedAt time.Time
+		avatarID             sql.NullString
 	)
 
 	qeuryBuilder := r.pg.Builder.
@@ -74,9 +76,16 @@ func (r *UserRepo) GetSingle(ctx context.Context, req entity.UserSingleRequest) 
 
 	err = r.pg.Pool.QueryRow(ctx, qeury, args...).
 		Scan(&response.ID, &response.FullName, &response.Email, &response.Bio, &response.Username, &response.Password,
-			&response.UserType, &response.UserRole, &response.Status, &response.AvatarId, &response.Gender, &createdAt, &updatedAt)
+			&response.UserType, &response.UserRole, &response.Status, &avatarID, &response.Gender, &createdAt, &updatedAt)
 	if err != nil {
 		return entity.User{}, err
+	}
+
+	// Agar avatar_id NULL bo'lsa, bo'sh qator sifatida saqlanadi
+	if avatarID.Valid {
+		response.AvatarId = avatarID.String
+	} else {
+		response.AvatarId = ""
 	}
 
 	response.CreatedAt = createdAt.Format(time.RFC3339)
@@ -182,7 +191,7 @@ func (r *UserRepo) Update(ctx context.Context, req entity.User) (entity.User, er
 	if err != nil {
 		return entity.User{}, err
 	}
-	res, err := r.GetSingle(ctx,entity.UserSingleRequest{ID: req.ID})
+	res, err := r.GetSingle(ctx, entity.UserSingleRequest{ID: req.ID})
 	if err != nil {
 		return entity.User{}, err
 	}
