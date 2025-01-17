@@ -170,6 +170,9 @@ func (r *UserRepo) Update(ctx context.Context, req entity.User) (entity.User, er
 	if req.UserRole != "" && req.UserRole != "string" {
 		mp["user_role"] = req.UserRole
 	}
+	if req.UserType != "" && req.UserType != "string" {
+		mp["user_type"] = req.UserType
+	}
 	if req.Password != "" && req.Password != "string" {
 		mp["password_hash"] = req.Password
 	}

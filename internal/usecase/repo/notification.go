@@ -19,7 +19,6 @@ type NotificationRepo struct {
 	logger *logger.Logger
 }
 
-// NewNotificationRepo creates a new instance of NotificationRepo
 func NewNotificationRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *NotificationRepo {
 	return &NotificationRepo{
 		pg:     pg,
@@ -28,13 +27,12 @@ func NewNotificationRepo(pg *postgres.Postgres, config *config.Config, logger *l
 	}
 }
 
-// Create adds a new notification entry into the database
 func (r *NotificationRepo) Create(ctx context.Context, req entity.Notification) (entity.Notification, error) {
 	req.ID = uuid.NewString()
 
 	query, args, err := r.pg.Builder.Insert("notifications").
-		Columns(`id, user_id, message, status`).
-		Values(req.ID, req.UserID, req.Message, req.Status).ToSql()
+		Columns(`id,owner_id, user_id,email, message, status`).
+		Values(req.ID, req.OwnerId, req.UserID, req.Email, req.Message, req.Status).ToSql()
 	if err != nil {
 		return entity.Notification{}, err
 	}
@@ -47,7 +45,6 @@ func (r *NotificationRepo) Create(ctx context.Context, req entity.Notification) 
 	return req, nil
 }
 
-// GetSingle retrieves a single notification by its ID
 func (r *NotificationRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Notification, error) {
 	response := entity.Notification{}
 	var createdAt time.Time
@@ -87,19 +84,37 @@ func (r *NotificationRepo) GetList(ctx context.Context, req entity.GetListFilter
 		Select(`id, user_id, message, status, created_at`).
 		From("notifications")
 
-	queryBuilder, where := PrepareGetListQuery(queryBuilder, req)
+	// Apply the user_id filter if provided in the request
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "user_id" {
+				// If user_id is provided, filter by user_id
+				if filter.Type == "eq" && filter.Value != "" {
+					queryBuilder = queryBuilder.Where("user_id = ?", filter.Value)
+				}
+				// If user_id is empty, fetch all notifications
+				if filter.Type == "eq" && filter.Value == "" {
+					// No filter needed, just continue
+					break
+				}
+			}
+		}
+	}
 
+	// Prepare the SQL query
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the query
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
+	// Scan the results into the response
 	for rows.Next() {
 		var item entity.Notification
 		err = rows.Scan(&item.ID, &item.UserID, &item.Message, &item.Status, &createdAt)
@@ -111,7 +126,8 @@ func (r *NotificationRepo) GetList(ctx context.Context, req entity.GetListFilter
 		response.Notifications = append(response.Notifications, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("notifications").Where(where).ToSql()
+	// Get the total count of notifications
+	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("notifications").ToSql()
 	if err != nil {
 		return response, err
 	}
@@ -124,10 +140,16 @@ func (r *NotificationRepo) GetList(ctx context.Context, req entity.GetListFilter
 	return response, nil
 }
 
-// Update updates the details of a notification
 func (r *NotificationRepo) Update(ctx context.Context, req entity.Notification) (entity.Notification, error) {
 	mp := make(map[string]interface{})
+	userRes, err := r.GetSingle(ctx, entity.Id{ID: req.ID})
+	if err != nil {
+		return entity.Notification{}, err
+	}
 
+	if userRes.OwnerId != req.OwnerId && (req.OwnerRole != "admin" && req.OwnerRole != "superadmin") {
+		return entity.Notification{}, fmt.Errorf("you are not allowed to update this notification")
+	}
 	if req.Message != "" {
 		mp["message"] = req.Message
 	}
@@ -135,7 +157,7 @@ func (r *NotificationRepo) Update(ctx context.Context, req entity.Notification) 
 		mp["status"] = req.Status
 	}
 
-	mp["created_at"] = "now()"
+	mp["created_at"] = "CURRENT_TIMESTAMP"
 
 	if len(mp) == 0 {
 		return entity.Notification{}, errors.New("no fields to update")
@@ -159,7 +181,6 @@ func (r *NotificationRepo) Update(ctx context.Context, req entity.Notification) 
 	return res, nil
 }
 
-// Delete deletes a notification by its ID
 func (r *NotificationRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("notifications").Where("id = ?", req.ID).ToSql()
 	if err != nil {
@@ -174,10 +195,9 @@ func (r *NotificationRepo) Delete(ctx context.Context, req entity.Id) error {
 	return nil
 }
 
-// UpdateStatus updates the status of a notification (e.g., 'read' or 'unread')
 func (r *NotificationRepo) UpdateStatus(ctx context.Context, req entity.Notification) (entity.Notification, error) {
 	query, args, err := r.pg.Builder.Update("notifications").
-		Set("status", req.Status).
+		Set("status", "read").
 		Where("id = ?", req.ID).
 		ToSql()
 	if err != nil {
@@ -189,6 +209,5 @@ func (r *NotificationRepo) UpdateStatus(ctx context.Context, req entity.Notifica
 		return entity.Notification{}, err
 	}
 
-	// Return the updated notification
 	return r.GetSingle(ctx, entity.Id{ID: req.ID})
 }

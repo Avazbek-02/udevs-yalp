@@ -1,12 +1,44 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
+
+// CreatetReview godoc
+// @Router /review [post]
+// @Summary Create a review
+// @Description Create a review
+// @Security BearerAuth
+// @Tags review
+// @Accept  json
+// @Produce  json
+// @Param review body entity.Review true "Review object"
+// @Success 200 {object} entity.Review
+// @Failure 400 {object} entity.ErrorResponse
+func (h *Handler) CreateReview(ctx *gin.Context) {
+	var (
+		req entity.Review
+	)
+
+	err := ctx.BindJSON(&req)
+	if h.HandleDbError(ctx, err, "Error getting review") {
+		return
+	}
+	UserId := ctx.GetHeader("sub")
+	req.UserID = UserId
+	fmt.Println(UserId)
+	res, err := h.UseCase.ReviewRepo.Create(ctx, req)
+	if h.HandleDbError(ctx, err, "Error creating review") {
+		return
+	}
+	ctx.JSON(200, res)
+}
 
 // GetReview godoc
 // @Router /review/{id} [get]
@@ -70,6 +102,10 @@ func (h *Handler) GetReviews(ctx *gin.Context) {
 		Column: "created_at",
 		Order:  "desc",
 	})
+	if _, err := uuid.Parse(businessID); err != nil && businessID != "" {
+		ctx.JSON(404,gin.H{"Error:":"Wrong format type please write UUID"})
+		return
+	}
 
 	reviews, err := h.UseCase.ReviewRepo.GetList(ctx, req)
 	if h.HandleDbError(ctx, err, "Error getting reviews") {

@@ -79,6 +79,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		"user_type":  user.UserType,
 		"platform":   body.Platform,
 		"session_id": session.ID,
+		"email": user.Email,
 	}
 
 	user.AccessToken, err = jwt.GenerateJWT(jwtFields, h.Config.JWT.Secret)
@@ -167,6 +168,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 		Status:   "inverify",
 		Password: body.Password,
 		Gender:   body.Gender,
+		AvatarId: body.Email,
 	})
 	if h.HandleDbError(ctx, err, "Error creating user") {
 		return

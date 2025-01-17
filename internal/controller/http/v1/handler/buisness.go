@@ -8,6 +8,45 @@ import (
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
 )
 
+// CreateBusiness godoc
+// @Router /business [post]
+// @Summary Create a new business
+// @Description Create a new business entity
+// @Tags business
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param business body entity.Business true "Business data"
+// @Success 200 {object} entity.Business
+// @Failure 400 {object} entity.ErrorResponse
+// @Failure 500 {object} entity.ErrorResponse
+func (h *Handler) CreateBuisiness(c *gin.Context) {
+	var (
+		req entity.Business
+	)
+	err := c.BindJSON(&req) // Fixed pointer issue
+	if h.HandleDbError(c, err, "Error getting business") {
+		return
+	}
+	req.OwnerID = c.GetHeader("sub")
+	res, err := h.UseCase.BusinessRepo.Create(c, req)
+	if h.HandleDbError(c, err, "Error creating business") {
+		return
+	}
+	var(
+		newUpdateType entity.User
+	)
+	newUpdateType.UserType = "businessman"
+	newUpdateType.ID = req.OwnerID
+	_, err = h.UseCase.UserRepo.Update(c,newUpdateType)
+	if h.HandleDbError(c, err, "Error update type user in business") {
+		return
+	}
+	c.Request.Header.Set("user-type", "businessman")
+	c.JSON(200, res)
+}
+
+
 // GetBusiness godoc
 // @Router /business/{id} [get]
 // @Summary Get a business by ID

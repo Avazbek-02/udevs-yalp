@@ -86,23 +86,42 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 	var response = entity.BusinessList{}
 	var createdAt, updatedAt time.Time
 
+	// Start building the SQL query
 	queryBuilder := r.pg.Builder.
 		Select(`id, owner_id, name, description, category, address, contact_info, photos, created_at, updated_at`).
 		From("businesses")
 
-	queryBuilder, where := PrepareGetListQuery(queryBuilder, req)
+	// Apply the owner_id filter if provided in the request
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "owner_id" {
+				// If owner_id is provided, filter by owner_id
+				if filter.Type == "eq" && filter.Value != "" {
+					queryBuilder = queryBuilder.Where("owner_id = ?", filter.Value)
+				}
+				// If owner_id is empty, fetch all businesses
+				if filter.Type == "eq" && filter.Value == "" {
+					// No filter needed, just continue
+					break
+				}
+			}
+		}
+	}
 
+	// Prepare the SQL query
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the query
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
+	// Scan the results into the response
 	for rows.Next() {
 		var item entity.Business
 		err = rows.Scan(&item.ID, &item.OwnerID, &item.Name, &item.Description, &item.Category,
@@ -117,7 +136,8 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 		response.Items = append(response.Items, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("businesses").Where(where).ToSql()
+	// Get the total count of businesses
+	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("businesses").ToSql()
 	if err != nil {
 		return response, err
 	}
@@ -129,6 +149,8 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 
 	return response, nil
 }
+
+
 
 func (r *BusinessRepo) Update(ctx context.Context, req entity.Business) (entity.Business, error) {
 	mp := make(map[string]interface{})

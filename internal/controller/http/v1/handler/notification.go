@@ -3,10 +3,60 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/Avazbek-02/udevslab-lesson6/pkg/etc"
+	"github.com/gin-gonic/gin"
 )
+
+// CreateNotification godoc
+// @Router /notification [post]
+// @Summary Create a new notification
+// @Description Create a notification and send an email to the user
+// @Security BearerAuth
+// @Tags notification
+// @Accept  json
+// @Produce  json
+// @Param body body entity.Notification true "Notification data"
+// @Success 201 {object} entity.Notification
+// @Failure 400 {object} entity.ErrorResponse
+func (h *Handler) CreateNotification(ctx *gin.Context) {
+	var (
+		body entity.Notification
+	)
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		h.ReturnError(ctx, config.ErrorBadRequest, "Invalid input data", 400)
+		return
+	}
+
+	body.OwnerId = ctx.GetHeader("sub")
+	body.Status = "unread"
+	resUser,err := h.UseCase.UserRepo.GetSingle(ctx,entity.UserSingleRequest{ID: body.UserID})
+	if h.HandleDbError(ctx, err, "Error getting notification") {
+		return
+	}
+
+	createdNotification, err := h.UseCase.NotificationRepo.Create(ctx, body)
+	if h.HandleDbError(ctx, err, "Error creating notification") {
+		return
+	}
+
+	body.Email = resUser.Email
+	emailBody, err := etc.GenerateNotificationEmailBody(body.Message)
+	if err != nil {
+		h.ReturnError(ctx, config.ErrorInternalServer, "Error generating email body", 500)
+		return
+	}
+
+	err = etc.SendEmail(h.Config.Gmail.Host, h.Config.Gmail.Port, h.Config.Gmail.Email, h.Config.Gmail.EmailPass, body.Email, emailBody)
+	if err != nil {
+		h.ReturnError(ctx, config.ErrorInternalServer, "Error sending email", 500)
+		return
+	}
+
+	
+	ctx.JSON(201, createdNotification)
+}
 
 // GetNotification godoc
 // @Router /notification/{id} [get]
@@ -34,6 +84,7 @@ func (h *Handler) GetNotification(ctx *gin.Context) {
 	ctx.JSON(200, notification)
 }
 
+
 // GetNotifications godoc
 // @Router /notification/list [get]
 // @Summary Get a list of notifications
@@ -48,9 +99,7 @@ func (h *Handler) GetNotification(ctx *gin.Context) {
 // @Success 200 {object} entity.NotificationList
 // @Failure 400 {object} entity.ErrorResponse
 func (h *Handler) GetNotifications(ctx *gin.Context) {
-	var (
-		req entity.GetListFilter
-	)
+	var req entity.GetListFilter
 
 	page := ctx.DefaultQuery("page", "1")
 	limit := ctx.DefaultQuery("limit", "10")
@@ -62,13 +111,20 @@ func (h *Handler) GetNotifications(ctx *gin.Context) {
 
 	req.Page, _ = strconv.Atoi(page)
 	req.Limit, _ = strconv.Atoi(limit)
-	req.Filters = append(req.Filters,
-		entity.Filter{
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+
+	if userId != "" {
+		req.Filters = append(req.Filters, entity.Filter{
 			Column: "user_id",
 			Type:   "eq",
 			Value:  userId,
-		},
-	)
+		})
+	}
 
 	req.OrderBy = append(req.OrderBy, entity.OrderBy{
 		Column: "created_at",
@@ -76,10 +132,13 @@ func (h *Handler) GetNotifications(ctx *gin.Context) {
 	})
 
 	notifications, err := h.UseCase.NotificationRepo.GetList(ctx, req)
-	if h.HandleDbError(ctx, err, "Error getting notifications") {
+	if err != nil {
+		// Handle database error properly, now passing the correct error type
+		h.HandleDbError(ctx, err, "Error getting notifications")
 		return
 	}
 
+	// Return response
 	ctx.JSON(200, notifications)
 }
 
@@ -98,7 +157,8 @@ func (h *Handler) UpdateNotification(ctx *gin.Context) {
 	var (
 		body entity.Notification
 	)
-
+	
+	body.OwnerRole = ctx.GetHeader("user_role")
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
 		h.ReturnError(ctx, config.ErrorBadRequest, "Invalid request body", 400)

@@ -4,6 +4,6 @@ CREATE TABLE if not exists reviews (
     business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
     feedback TEXT,
-    photos JSONB,
+    photos TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

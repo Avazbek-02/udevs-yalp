@@ -26,8 +26,10 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 		if token == "" {
 			userRole = "unauthorized"
 		}
+		fmt.Println(token)
 
 		if userRole == "" {
+			
 			token = strings.TrimPrefix(token, "Bearer ")
 
 			claims, err := jwt.ParseJWT(token, h.Config.JWT.Secret)

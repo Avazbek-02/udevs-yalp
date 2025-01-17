@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -31,10 +32,14 @@ func NewReviewRepo(pg *postgres.Postgres, config *config.Config, logger *logger.
 // Create adds a new review entry into the database
 func (r *ReviewRepo) Create(ctx context.Context, req entity.Review) (entity.Review, error) {
 	req.ID = uuid.NewString()
-
+	photosJSON, err := json.Marshal(req.Photos)
+	if err != nil {
+		return entity.Review{}, fmt.Errorf("failed to marshal photos: %v", err)
+	}
+	fmt.Println(req)
 	query, args, err := r.pg.Builder.Insert("reviews").
 		Columns(`id, user_id, business_id, rating, feedback, photos`).
-		Values(req.ID, req.UserID, req.BusinessID, req.Rating, req.Feedback, req.Photos).ToSql()
+		Values(req.ID, req.UserID, req.BusinessID, req.Rating, req.Feedback, photosJSON).ToSql()
 	if err != nil {
 		return entity.Review{}, err
 	}
@@ -43,7 +48,7 @@ func (r *ReviewRepo) Create(ctx context.Context, req entity.Review) (entity.Revi
 	if err != nil {
 		return entity.Review{}, err
 	}
-
+	
 	return req, nil
 }
 
@@ -79,7 +84,6 @@ func (r *ReviewRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Revie
 	return response, nil
 }
 
-// GetList retrieves a list of reviews based on filters
 func (r *ReviewRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.ReviewList, error) {
 	var response = entity.ReviewList{}
 	var createdAt time.Time
@@ -88,19 +92,36 @@ func (r *ReviewRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 		Select(`id, user_id, business_id, rating, feedback, photos, created_at`).
 		From("reviews")
 
-	queryBuilder, where := PrepareGetListQuery(queryBuilder, req)
+	// Apply filters
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "business_id" {
+				if filter.Type == "eq" && filter.Value != "" {
+					// Add filter for business_id
+					queryBuilder = queryBuilder.Where("business_id = ?", filter.Value)
+				}
+				if filter.Type == "eq" && filter.Value == "" {
+					// If business_id is empty, return all reviews
+					break
+				}
+			}
+		}
+	}
 
+	// Prepare the SQL query for fetching the reviews
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the query for reviews
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
+	// Scan the review records into response.Items
 	for rows.Next() {
 		var item entity.Review
 		err = rows.Scan(&item.ID, &item.UserID, &item.BusinessID, &item.Rating, &item.Feedback, &item.Photos, &createdAt)
@@ -112,12 +133,25 @@ func (r *ReviewRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 		response.Items = append(response.Items, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("reviews").Where(where).ToSql()
+	// Now, count the reviews based on the same filter (business_id)
+	countQueryBuilder := r.pg.Builder.Select("COUNT(1)").From("reviews")
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "business_id" && filter.Type == "eq" && filter.Value != "" {
+				// Add the same filter to the COUNT query
+				countQueryBuilder = countQueryBuilder.Where("business_id = ?", filter.Value)
+			}
+		}
+	}
+
+	// Prepare and execute the COUNT query
+	countQuery, args, err := countQueryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
-	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.Items)
+	// Execute the count query
+	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.Count)
 	if err != nil {
 		return response, err
 	}
@@ -125,7 +159,9 @@ func (r *ReviewRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 	return response, nil
 }
 
-// Update updates the details of a review
+
+
+
 func (r *ReviewRepo) Update(ctx context.Context, req entity.Review) (entity.Review, error) {
 	mp := make(map[string]interface{})
 

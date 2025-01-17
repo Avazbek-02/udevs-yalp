@@ -53,11 +53,17 @@ definitions:
       created_at:
         description: Timestamp of when the notification was created
         type: string
+      email:
+        type: string
       id:
         description: UUID of the notification
         type: string
       message:
         description: Message of the notification
+        type: string
+      owner_id:
+        type: string
+      ownerrole:
         type: string
       status:
         description: Status of the notification ('read' or 'unread')
@@ -332,6 +338,37 @@ paths:
       tags:
       - auth
   /business:
+    post:
+      consumes:
+      - application/json
+      description: Create a new business entity
+      parameters:
+      - description: Business data
+        in: body
+        name: business
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Business'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Business'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new business
+      tags:
+      - business
     put:
       consumes:
       - application/json
@@ -449,6 +486,33 @@ paths:
       tags:
       - business
   /notification:
+    post:
+      consumes:
+      - application/json
+      description: Create a notification and send an email to the user
+      parameters:
+      - description: Notification data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Notification'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Notification'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new notification
+      tags:
+      - notification
     put:
       consumes:
       - application/json
@@ -711,6 +775,33 @@ paths:
       tags:
       - report
   /review:
+    post:
+      consumes:
+      - application/json
+      description: Create a review
+      parameters:
+      - description: Review object
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Review'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Review'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a review
+      tags:
+      - review
     put:
       consumes:
       - application/json

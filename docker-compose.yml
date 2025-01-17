@@ -8,8 +8,23 @@ services:
       - 8080:8080
     networks:
       - udevslabs-yalp
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000" # Expose Grafana on port 3000
+    volumes:
+      - grafana_data:/var/lib/grafana # Persistent data storage
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin # Default admin username
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Default admin password
+    restart: always
 
 
 networks:
   udevslabs-yalp: 
     external: true
+
+volumes:
+  grafana_data:

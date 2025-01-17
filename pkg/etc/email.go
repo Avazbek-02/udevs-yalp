@@ -12,6 +12,30 @@ type Otp struct {
 	Code string
 }
 
+func GenerateNotificationEmailBody(message string) (string, error) {
+	templateString := `
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Hello: you have sms: {{.Code}},</p>
+</body>
+</html>
+`
+	tmpl, err := template.New("email").Parse(templateString)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse email template: %w", err)
+	}
+	otpData := Otp{message}
+
+	var builder strings.Builder
+	err = tmpl.Execute(&builder, otpData)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute email template: %w", err)
+	}
+
+	return builder.String(), nil
+}
+
 // generateEmailBody generates the HTML email body for a student
 func GenerateOtpEmailBody(otp string) (string, error) {
 	templateString := `

@@ -74,6 +74,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	}
 	business := v1.Group("/business")
 	{
+		business.POST("/", handlerV1.CreateBuisiness)
 		business.GET("/:id", handlerV1.GetBusiness)
 		business.GET("/list", handlerV1.GetBusinesses)
 		business.PUT("/", handlerV1.UpdateBusiness)
@@ -82,6 +83,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 
 	review := v1.Group("/review")
 	{
+		review.POST("/", handlerV1.CreateReview)
 		review.GET("/:id", handlerV1.GetReview)
 		review.GET("/list", handlerV1.GetReviews)
 		review.PUT("/", handlerV1.UpdateReview)
@@ -98,6 +100,8 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 
 	notification := v1.Group("/notification")
 	{
+		notification.POST("/", handlerV1.CreateNotification)
+		notification.PUT("/", handlerV1.UpdateNotification)
 		notification.GET("/list", handlerV1.GetNotifications)
 		notification.GET("/:id", handlerV1.GetNotification)
 		notification.DELETE("/:id", handlerV1.DeleteNotification)
