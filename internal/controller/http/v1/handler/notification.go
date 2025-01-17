@@ -84,6 +84,35 @@ func (h *Handler) GetNotification(ctx *gin.Context) {
 	ctx.JSON(200, notification)
 }
 
+// GetNotification godoc
+// @Router /notification/update-status [put]
+// @Summary Update status a notification by ID
+// @Description Update status notification by ID
+// @Security BearerAuth
+// @Tags notification
+// @Accept  json
+// @Produce  json
+// @Param notification body entity.Notification true "Notification object"
+// @Success 200 {object} entity.Notification
+// @Failure 400 {object} entity.ErrorResponse
+func (h *Handler) UpdateStatusNotification(ctx *gin.Context) {
+	var (
+		req entity.Notification
+	)
+
+	err := ctx.ShouldBindJSON(&req)
+	if h.HandleDbError(ctx, err, "Error getting notification") {
+		return
+	}
+
+	notification, err := h.UseCase.NotificationRepo.UpdateStatus(ctx, req)
+	if h.HandleDbError(ctx, err, "Error update status notification") {
+		return
+	}
+
+	ctx.JSON(200, notification)
+}
+
 
 // GetNotifications godoc
 // @Router /notification/list [get]

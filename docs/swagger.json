@@ -585,6 +585,51 @@
                 }
             }
         },
+        "/notification/update-status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update status notification by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notification"
+                ],
+                "summary": "Update status a notification by ID",
+                "parameters": [
+                    {
+                        "description": "Notification object",
+                        "name": "notification",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.Notification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Notification"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/notification/{id}": {
             "get": {
                 "security": [

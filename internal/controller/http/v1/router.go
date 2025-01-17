@@ -102,6 +102,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	{
 		notification.POST("/", handlerV1.CreateNotification)
 		notification.PUT("/", handlerV1.UpdateNotification)
+		notification.PUT("/update-status", handlerV1.UpdateStatusNotification)
 		notification.GET("/list", handlerV1.GetNotifications)
 		notification.GET("/:id", handlerV1.GetNotification)
 		notification.DELETE("/:id", handlerV1.DeleteNotification)
