@@ -39,7 +39,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	user, err := h.UseCase.UserRepo.Create(ctx, body)
 	if h.HandleDbError(ctx, err, "Error creating user") {
-		return
+		return//df
 	}
 
 	ctx.JSON(201, user)

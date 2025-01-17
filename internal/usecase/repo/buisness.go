@@ -218,7 +218,7 @@ func (r *BusinessRepo) Update(ctx context.Context, req entity.Business) (entity.
 	return res, nil
 }
 
-// Delete deletes a business by its ID
+// Delete deletes a business by its I
 func (r *BusinessRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("businesses").Where("id = ?", req.ID).ToSql()
 	if err != nil {
