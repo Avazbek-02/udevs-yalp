@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -31,7 +30,6 @@ func (h *Handler) CreateReport(ctx *gin.Context) {
 		return
 	}
 	req.UserID = ctx.GetHeader("sub")
-	fmt.Println("::::",req.UserID)
 	res, err := h.UseCase.ReportRepo.Create(ctx, req)
 	if h.HandleDbError(ctx, err, "Error creating report") {
 		return

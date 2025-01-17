@@ -15,6 +15,7 @@ type UseCase struct {
 	NotificationRepo NotificationRepoI
 	ReviewRepo ReviewRepoI
 	ReportRepo ReportRepoI
+	EventRepo EventRepoI
 }
 
 // New -.
@@ -26,5 +27,6 @@ func New(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *U
 		NotificationRepo: repo.NewNotificationRepo(pg, config, logger),
 		ReviewRepo: repo.NewReviewRepo(pg, config, logger),
 		ReportRepo: repo.NewReportRepo(pg, config, logger),
+		EventRepo: repo.NewEventRepo(pg, config, logger),
 	}
 }

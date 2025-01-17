@@ -42,7 +42,7 @@ func (h *Handler) CreateBuisiness(c *gin.Context) {
 	if h.HandleDbError(c, err, "Error update type user in business") {
 		return
 	}
-	c.Request.Header.Set("user-type", "businessman")
+	c.Request.Header.Set("user_type", "businessman")
 	c.JSON(200, res)
 }
 

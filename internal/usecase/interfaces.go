@@ -57,4 +57,14 @@ type (
 		Update(ctx context.Context, req entity.Report) (entity.Report, error)
 		Delete(ctx context.Context, req entity.Id) error
 	}
+	EventRepoI interface {
+		Create(ctx context.Context, req entity.Event) (entity.Event, error)
+		GetSingle(ctx context.Context, req entity.Id) (entity.Event, error)
+		GetList(ctx context.Context, req entity.GetListFilter) (entity.EventList, error)
+		Update(ctx context.Context, req entity.Event) (entity.Event, error)
+		Delete(ctx context.Context, req entity.Id) error
+		AddParticipant(ctx context.Context, req entity.EventParticipant) (entity.EventParticipant, error)
+		RemoveParticipant(ctx context.Context, req entity.EventParticipant) error
+		GetParticipants(ctx context.Context, req entity.GetListFilter) (entity.EventParticipantList, error)
+	}
 )

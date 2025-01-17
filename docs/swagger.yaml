@@ -39,6 +39,52 @@ definitions:
       message:
         type: string
     type: object
+  entity.Event:
+    properties:
+      business_id:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.EventList:
+    properties:
+      count:
+        type: integer
+      events:
+        items:
+          $ref: '#/definitions/entity.Event'
+        type: array
+    type: object
+  entity.EventParticipant:
+    properties:
+      event_id:
+        type: string
+      id:
+        type: string
+      joined_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entity.EventParticipantList:
+    properties:
+      count:
+        type: integer
+      participants:
+        items:
+          $ref: '#/definitions/entity.EventParticipant'
+        type: array
+    type: object
   entity.LoginRequest:
     properties:
       email:
@@ -172,6 +218,7 @@ definitions:
   entity.SessionList:
     properties:
       count:
+        description: sdf
         type: integer
       sessions:
         items:
@@ -485,6 +532,243 @@ paths:
       summary: Get a list of businesses
       tags:
       - business
+  /event:
+    post:
+      consumes:
+      - application/json
+      description: Create an event
+      parameters:
+      - description: Event object
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Event'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create an event
+      tags:
+      - event
+    put:
+      consumes:
+      - application/json
+      description: Update an event
+      parameters:
+      - description: Event object
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Event'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an event
+      tags:
+      - event
+  /event/:id/participants:
+    get:
+      consumes:
+      - application/json
+      description: Get participants of an event
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        required: true
+        type: number
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: number
+      - description: Event ID
+        in: query
+        name: event_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventParticipantList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get participants of an event
+      tags:
+      - event
+  /event/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an event
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete an event
+      tags:
+      - event
+    get:
+      consumes:
+      - application/json
+      description: Get an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get an event by ID
+      tags:
+      - event
+  /event/add-participant:
+    post:
+      consumes:
+      - application/json
+      description: Add a participant to an event
+      parameters:
+      - description: Participant object
+        in: body
+        name: participant
+        required: true
+        schema:
+          $ref: '#/definitions/entity.EventParticipant'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventParticipant'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a participant to an event
+      tags:
+      - event
+  /event/list:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of events
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        required: true
+        type: number
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: number
+      - description: Business ID
+        in: query
+        name: business_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a list of events
+      tags:
+      - event
+  /event/remove-participant:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a participant from an event
+      parameters:
+      - description: Participant object
+        in: body
+        name: participant
+        required: true
+        schema:
+          $ref: '#/definitions/entity.EventParticipant'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a participant from an event
+      tags:
+      - event
   /notification:
     post:
       consumes:

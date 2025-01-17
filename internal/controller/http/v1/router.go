@@ -11,12 +11,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	// Swagger docs.
-	rediscache "github.com/golanguzb70/redis-cache"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	_ "github.com/Avazbek-02/udevslab-lesson6/docs"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/controller/http/v1/handler"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
+	rediscache "github.com/golanguzb70/redis-cache"
 )
 
 // NewRouter -.
@@ -38,8 +38,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
 	engine.Use(handlerV1.AuthMiddleware(e))
 
-
-	url := ginSwagger.URL("swagger/doc.json") 
+	url := ginSwagger.URL("swagger/doc.json")
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	engine.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
@@ -91,7 +90,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	}
 
 	report := v1.Group("/report")
-	{	
+	{
 		report.POST("/", handlerV1.CreateReport)
 		report.GET("/:id", handlerV1.GetReport)
 		report.GET("/list", handlerV1.GetReports)
@@ -108,5 +107,15 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		notification.GET("/:id", handlerV1.GetNotification)
 		notification.DELETE("/:id", handlerV1.DeleteNotification)
 	}
-
+	event := v1.Group("/event")
+	{
+		event.POST("/", handlerV1.CreateEvent)
+		event.PUT("/", handlerV1.UpdateEvent)
+		event.GET("/list", handlerV1.GetEvents)
+		event.GET("/:id", handlerV1.GetEvent)
+		event.DELETE("/:id", handlerV1.DeleteEvent)
+		event.POST("/add-participant", handlerV1.AddParticipant)
+		event.DELETE("/remove-participant", handlerV1.RemoveParticipant)
+		event.GET("/:id/participants", handlerV1.GetParticipants)
+	}
 }
