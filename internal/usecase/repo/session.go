@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -87,38 +88,62 @@ func (r *SessionRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Sess
 }
 
 func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.SessionList, error) {
-	var (
-		response = entity.SessionList{}
-	)
+	var response entity.SessionList
+	var createdAt, updatedAt time.Time
 
-	qeuryBuilder := r.pg.Builder.
+	// Start building the query
+	queryBuilder := r.pg.Builder.
 		Select(`id, user_id, ip_address, user_agent, is_active, expires_at, last_active_at, platform, created_at, updated_at`).
 		From("sessions")
 
-	qeuryBuilder, where := PrepareGetListQuery(qeuryBuilder, req)
-	qeury, args, err := qeuryBuilder.ToSql()
-	if err != nil {
-		return response, err
+	// Apply filters to the query
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			switch filter.Column {
+			case "user_id":
+				if filter.Type == "eq" && filter.Value != "" {
+					queryBuilder = queryBuilder.Where("user_id = ?", filter.Value)
+				}
+			case "ip_address":
+				if filter.Type == "eq" && filter.Value != "" {
+					queryBuilder = queryBuilder.Where("ip_address = ?", filter.Value)
+				}
+			case "is_active":
+				if filter.Type == "eq" && filter.Value != "" {
+					queryBuilder = queryBuilder.Where("is_active = ?", filter.Value)
+				}
+			}
+		}
 	}
 
-	rows, err := r.pg.Pool.Query(ctx, qeury, args...)
+	// Apply pagination (LIMIT and OFFSET)
+	if req.Limit > 0 {
+		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
+	}
+	if req.Page > 0 {
+		offset := (req.Page - 1) * req.Limit
+		queryBuilder = queryBuilder.Offset(uint64(offset))
+	}
 
+	// Prepare and execute the SQL query
+	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error building query: %w", err)
+	}
+
+	rows, err := r.pg.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return response, fmt.Errorf("error executing query: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var (
-			createdAt, updatedAt    time.Time
-			expiresAt, lastActiveAt sql.NullTime
-			item                    entity.Session
-		)
-
+		var item entity.Session
+		var expiresAt, lastActiveAt sql.NullTime
 		err = rows.Scan(&item.ID, &item.UserID, &item.IPAddress, &item.UserAgent,
 			&item.IsActive, &expiresAt, &lastActiveAt, &item.Platform, &createdAt, &updatedAt)
 		if err != nil {
-			return response, err
+			return response, fmt.Errorf("error scanning row: %w", err)
 		}
 
 		item.CreatedAt = createdAt.Format(time.RFC3339)
@@ -126,7 +151,6 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 		if expiresAt.Valid {
 			item.ExpiresAt = expiresAt.Time.Format(time.RFC3339)
 		}
-
 		if lastActiveAt.Valid {
 			item.LastActiveAt = lastActiveAt.Time.Format(time.RFC3339)
 		}
@@ -134,14 +158,28 @@ func (r *SessionRepo) GetList(ctx context.Context, req entity.GetListFilter) (en
 		response.Items = append(response.Items, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("sessions").Where(where).ToSql()
+	// Count query to get the total number of records
+	countQueryBuilder := r.pg.Builder.Select("COUNT(1)").From("sessions")
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			switch filter.Column {
+			case "user_id":
+				if filter.Type == "eq" && filter.Value != "" {
+					countQueryBuilder = countQueryBuilder.Where("user_id = ?", filter.Value)
+				}
+			}
+		}
+	}
+
+	// Prepare and execute the count query
+	countQuery, args, err := countQueryBuilder.ToSql()
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error building count query: %w", err)
 	}
 
 	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.Count)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error executing count query: %w", err)
 	}
 
 	return response, nil

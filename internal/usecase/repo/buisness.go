@@ -91,37 +91,45 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 		Select(`id, owner_id, name, description, category, address, contact_info, photos, created_at, updated_at`).
 		From("businesses")
 
-	// Apply the owner_id filter if provided in the request
+	// Apply filters (if any)
 	if req.Filters != nil {
 		for _, filter := range req.Filters {
 			if filter.Column == "owner_id" {
-				// If owner_id is provided, filter by owner_id
 				if filter.Type == "eq" && filter.Value != "" {
+					// Add filter for owner_id
 					queryBuilder = queryBuilder.Where("owner_id = ?", filter.Value)
 				}
-				// If owner_id is empty, fetch all businesses
 				if filter.Type == "eq" && filter.Value == "" {
-					// No filter needed, just continue
+					// If owner_id is empty, return all businesses
 					break
 				}
 			}
 		}
 	}
 
-	// Prepare the SQL query
+	// Apply pagination (LIMIT and OFFSET)
+	if req.Limit > 0 {
+		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
+	}
+	if req.Page > 0 {
+		offset := (req.Page - 1) * req.Limit
+		queryBuilder = queryBuilder.Offset(uint64(offset))
+	}
+
+	// Prepare the SQL query for fetching businesses
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
-	// Execute the query
+	// Execute the query for businesses
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
-	// Scan the results into the response
+	// Scan the business records into response.Items
 	for rows.Next() {
 		var item entity.Business
 		err = rows.Scan(&item.ID, &item.OwnerID, &item.Name, &item.Description, &item.Category,
@@ -136,12 +144,24 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 		response.Items = append(response.Items, item)
 	}
 
-	// Get the total count of businesses
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("businesses").ToSql()
+	// Get the total count of businesses based on filters (if any)
+	countQueryBuilder := r.pg.Builder.Select("COUNT(1)").From("businesses")
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "owner_id" && filter.Type == "eq" && filter.Value != "" {
+				// Add the same filter to the COUNT query
+				countQueryBuilder = countQueryBuilder.Where("owner_id = ?", filter.Value)
+			}
+		}
+	}
+
+	// Prepare and execute the COUNT query
+	countQuery, args, err := countQueryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the count query
 	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.Count)
 	if err != nil {
 		return response, err

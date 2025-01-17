@@ -52,36 +52,47 @@ func (h *Handler) GetSessions(ctx *gin.Context) {
 		req entity.GetListFilter
 	)
 
+	// Retrieve query parameters with defaults
 	page := ctx.DefaultQuery("page", "1")
 	limit := ctx.DefaultQuery("limit", "10")
 	userId := ctx.DefaultQuery("user_id", "")
 
+	// Override user_id based on user_type if it's "user"
 	if ctx.GetHeader("user_type") == "user" {
 		userId = ctx.GetHeader("sub")
 	}
 
+	// Convert page and limit to integers and handle potential errors
 	req.Page, _ = strconv.Atoi(page)
 	req.Limit, _ = strconv.Atoi(limit)
-	req.Filters = append(req.Filters,
-		entity.Filter{
+
+	// Add user_id filter
+	if userId != "" {
+		req.Filters = append(req.Filters, entity.Filter{
 			Column: "user_id",
 			Type:   "eq",
 			Value:  userId,
-		},
-	)
+		})
+	}
 
+	// Set default order by created_at descending
 	req.OrderBy = append(req.OrderBy, entity.OrderBy{
 		Column: "created_at",
 		Order:  "desc",
 	})
 
+	// Fetch sessions from the repository
 	sessions, err := h.UseCase.SessionRepo.GetList(ctx, req)
-	if h.HandleDbError(ctx, err, "Error getting session") {
+	if err != nil {
+		// Handle the error appropriately and return a proper response
+		h.HandleDbError(ctx, err, "Error getting session")
 		return
 	}
 
+	// Return the session data as a JSON response
 	ctx.JSON(200, sessions)
 }
+
 
 // UpdateSession godoc
 // @Router /session [put]

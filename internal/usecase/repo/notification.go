@@ -80,41 +80,50 @@ func (r *NotificationRepo) GetList(ctx context.Context, req entity.GetListFilter
 	var response = entity.NotificationList{}
 	var createdAt time.Time
 
+	// Start building the query
 	queryBuilder := r.pg.Builder.
 		Select(`id, user_id, message, status, created_at`).
 		From("notifications")
 
-	// Apply the user_id filter if provided in the request
+	// Apply filters (if any)
 	if req.Filters != nil {
 		for _, filter := range req.Filters {
 			if filter.Column == "user_id" {
-				// If user_id is provided, filter by user_id
 				if filter.Type == "eq" && filter.Value != "" {
+					// Add filter for user_id
 					queryBuilder = queryBuilder.Where("user_id = ?", filter.Value)
 				}
-				// If user_id is empty, fetch all notifications
 				if filter.Type == "eq" && filter.Value == "" {
-					// No filter needed, just continue
+					// If user_id is empty, return all notifications
 					break
 				}
 			}
 		}
 	}
 
-	// Prepare the SQL query
+	// Apply pagination (LIMIT and OFFSET)
+	if req.Limit > 0 {
+		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
+	}
+	if req.Page > 0 {
+		offset := (req.Page - 1) * req.Limit
+		queryBuilder = queryBuilder.Offset(uint64(offset))
+	}
+
+	// Prepare the SQL query for fetching the notifications
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
-	// Execute the query
+	// Execute the query for notifications
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
-	// Scan the results into the response
+	// Scan the notification records into response.Notifications
 	for rows.Next() {
 		var item entity.Notification
 		err = rows.Scan(&item.ID, &item.UserID, &item.Message, &item.Status, &createdAt)
@@ -126,12 +135,24 @@ func (r *NotificationRepo) GetList(ctx context.Context, req entity.GetListFilter
 		response.Notifications = append(response.Notifications, item)
 	}
 
-	// Get the total count of notifications
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("notifications").ToSql()
+	// Get the total count of notifications based on filters (if any)
+	countQueryBuilder := r.pg.Builder.Select("COUNT(1)").From("notifications")
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "user_id" && filter.Type == "eq" && filter.Value != "" {
+				// Add the same filter to the COUNT query
+				countQueryBuilder = countQueryBuilder.Where("user_id = ?", filter.Value)
+			}
+		}
+	}
+
+	// Prepare and execute the COUNT query
+	countQuery, args, err := countQueryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the count query
 	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.TotalCount)
 	if err != nil {
 		return response, err

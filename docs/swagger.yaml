@@ -686,6 +686,33 @@ paths:
       tags:
       - notification
   /report:
+    post:
+      consumes:
+      - application/json
+      description: Create a report
+      parameters:
+      - description: Report object
+        in: body
+        name: report
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Report'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Report'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a report
+      tags:
+      - report
     put:
       consumes:
       - application/json

@@ -1,12 +1,43 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
+
+// CreateReport godoc
+// @Router /report [post]
+// @Summary Create a report
+// @Description Create a report
+// @Security BearerAuth
+// @Tags report
+// @Accept  json
+// @Produce  json
+// @Param report body entity.Report true "Report object"
+// @Success 200 {object} entity.Report
+// @Failure 400 {object} entity.ErrorResponse
+func (h *Handler) CreateReport(ctx *gin.Context) {
+	var (
+		req entity.Report
+	)
+
+	err := ctx.BindJSON(&req)
+	if h.HandleDbError(ctx, err, "Error getting report") {
+		return
+	}
+	req.UserID = ctx.GetHeader("sub")
+	fmt.Println("::::",req.UserID)
+	res, err := h.UseCase.ReportRepo.Create(ctx, req)
+	if h.HandleDbError(ctx, err, "Error creating report") {
+		return
+	}
+	ctx.JSON(200, res)
+}
 
 // GetReport godoc
 // @Router /report/{id} [get]
@@ -70,6 +101,10 @@ func (h *Handler) GetReports(ctx *gin.Context) {
 		Column: "created_at",
 		Order:  "desc",
 	})
+	if _, err := uuid.Parse(businessID); err != nil && businessID != "" {
+		ctx.JSON(404, gin.H{"Error:": "Wrong format type please write UUID"})
+		return
+	}
 
 	reports, err := h.UseCase.ReportRepo.GetList(ctx, req)
 	if h.HandleDbError(ctx, err, "Error getting reports") {

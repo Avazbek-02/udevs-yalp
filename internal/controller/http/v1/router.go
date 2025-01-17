@@ -91,7 +91,8 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 	}
 
 	report := v1.Group("/report")
-	{
+	{	
+		report.POST("/", handlerV1.CreateReport)
 		report.GET("/:id", handlerV1.GetReport)
 		report.GET("/list", handlerV1.GetReports)
 		report.PUT("/", handlerV1.UpdateReport)

@@ -21,6 +21,10 @@ p, user, /v1/notification/*, GET|POST|PUT|DELETE
 p, user, /v1/notification/:id, GET
 p, admin, /v1/notification/*, GET|POST|PUT|DELETE
 
+p, user, /v1/report/*, GET|POST|PUT|DELETE
+p, user, /v1/report/:id, GET
+p, admin, /v1/report/*, GET|POST|PUT|DELETE
+
 
 g, user, unauthorized
 g, admin, user

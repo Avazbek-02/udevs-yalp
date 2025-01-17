@@ -31,7 +31,7 @@ func NewReportRepo(pg *postgres.Postgres, config *config.Config, logger *logger.
 // Create adds a new report entry into the database
 func (r *ReportRepo) Create(ctx context.Context, req entity.Report) (entity.Report, error) {
 	req.ID = uuid.NewString()
-
+	fmt.Println("::::::",req.UserID, req.BusinessID)
 	query, args, err := r.pg.Builder.Insert("reports").
 		Columns(`id, user_id, business_id, reason`).
 		Values(req.ID, req.UserID, req.BusinessID, req.Reason).ToSql()
@@ -47,7 +47,6 @@ func (r *ReportRepo) Create(ctx context.Context, req entity.Report) (entity.Repo
 	return req, nil
 }
 
-// GetSingle retrieves a single report by its ID
 func (r *ReportRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Report, error) {
 	response := entity.Report{}
 	var createdAt time.Time
@@ -84,23 +83,50 @@ func (r *ReportRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 	var response = entity.ReportList{}
 	var createdAt time.Time
 
+	// Start building the query
 	queryBuilder := r.pg.Builder.
 		Select(`id, user_id, business_id, reason, created_at`).
 		From("reports")
 
-	queryBuilder, where := PrepareGetListQuery(queryBuilder, req)
+	// Apply filters (if any)
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "business_id" {
+				if filter.Type == "eq" && filter.Value != "" {
+					// Add filter for business_id
+					queryBuilder = queryBuilder.Where("business_id = ?", filter.Value)
+				}
+				if filter.Type == "eq" && filter.Value == "" {
+					// If business_id is empty, return all reports
+					break
+				}
+			}
+		}
+	}
 
+	// Apply pagination (LIMIT and OFFSET)
+	if req.Limit > 0 {
+		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
+	}
+	if req.Page > 0 {
+		offset := (req.Page - 1) * req.Limit
+		queryBuilder = queryBuilder.Offset(uint64(offset))
+	}
+
+	// Prepare the SQL query for fetching the reports
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the query for reports
 	rows, err := r.pg.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return response, err
 	}
 	defer rows.Close()
 
+	// Scan the report records into response.Reports
 	for rows.Next() {
 		var item entity.Report
 		err = rows.Scan(&item.ID, &item.UserID, &item.BusinessID, &item.Reason, &createdAt)
@@ -112,11 +138,24 @@ func (r *ReportRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 		response.Reports = append(response.Reports, item)
 	}
 
-	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("reports").Where(where).ToSql()
+	// Now, count the reports based on the same filter (business_id)
+	countQueryBuilder := r.pg.Builder.Select("COUNT(1)").From("reports")
+	if req.Filters != nil {
+		for _, filter := range req.Filters {
+			if filter.Column == "business_id" && filter.Type == "eq" && filter.Value != "" {
+				// Add the same filter to the COUNT query
+				countQueryBuilder = countQueryBuilder.Where("business_id = ?", filter.Value)
+			}
+		}
+	}
+
+	// Prepare and execute the COUNT query
+	countQuery, args, err := countQueryBuilder.ToSql()
 	if err != nil {
 		return response, err
 	}
 
+	// Execute the count query
 	err = r.pg.Pool.QueryRow(ctx, countQuery, args...).Scan(&response.Count)
 	if err != nil {
 		return response, err
