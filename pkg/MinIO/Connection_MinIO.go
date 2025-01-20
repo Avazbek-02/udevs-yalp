@@ -19,7 +19,7 @@ var bucketName = "minIO"
 
 // Connect to MinIO and create a bucket if it doesn't exist
 func MinIOConnect(cnf *config.Config) (*MinIO, error) {
-	cnf. := ":9000"
+	cnf := ":9000"
 	accessKeyID := "localhost"
 	secretAccessKey := "minioadmin123"
 
