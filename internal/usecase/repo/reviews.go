@@ -20,7 +20,6 @@ type ReviewRepo struct {
 	logger *logger.Logger
 }
 
-// NewReviewRepo creates a new instance of ReviewRepo
 func NewReviewRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *ReviewRepo {
 	return &ReviewRepo{
 		pg:     pg,
@@ -29,7 +28,6 @@ func NewReviewRepo(pg *postgres.Postgres, config *config.Config, logger *logger.
 	}
 }
 
-// Create adds a new review entry into the database
 func (r *ReviewRepo) Create(ctx context.Context, req entity.Review) (entity.Review, error) {
 	req.ID = uuid.NewString()
 	photosJSON, err := json.Marshal(req.Photos)
@@ -52,7 +50,6 @@ func (r *ReviewRepo) Create(ctx context.Context, req entity.Review) (entity.Revi
 	return req, nil
 }
 
-// GetSingle retrieves a single review by its ID
 func (r *ReviewRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Review, error) {
 	response := entity.Review{}
 	var createdAt time.Time
@@ -159,9 +156,6 @@ func (r *ReviewRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 	return response, nil
 }
 
-
-
-
 func (r *ReviewRepo) Update(ctx context.Context, req entity.Review) (entity.Review, error) {
 	mp := make(map[string]interface{})
 
@@ -199,7 +193,6 @@ func (r *ReviewRepo) Update(ctx context.Context, req entity.Review) (entity.Revi
 	return res, nil
 }
 
-// Delete deletes a review by its ID
 func (r *ReviewRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("reviews").Where("id = ?", req.ID).ToSql()
 	if err != nil {

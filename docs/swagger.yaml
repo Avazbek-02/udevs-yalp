@@ -82,8 +82,29 @@ definitions:
         type: integer
       participants:
         items:
-          $ref: '#/definitions/entity.EventParticipant'
+          $ref: '#/definitions/entity.EventUsers'
         type: array
+    type: object
+  entity.EventUsers:
+    properties:
+      email:
+        type: string
+      event_id:
+        type: string
+      full_name:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      user_role:
+        type: string
+      user_type:
+        type: string
+      username:
+        type: string
     type: object
   entity.LoginRequest:
     properties:

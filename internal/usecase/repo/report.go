@@ -19,7 +19,6 @@ type ReportRepo struct {
 	logger *logger.Logger
 }
 
-// NewReportRepo creates a new instance of ReportRepo
 func NewReportRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *ReportRepo {
 	return &ReportRepo{
 		pg:     pg,
@@ -28,7 +27,6 @@ func NewReportRepo(pg *postgres.Postgres, config *config.Config, logger *logger.
 	}
 }
 
-// Create adds a new report entry into the database
 func (r *ReportRepo) Create(ctx context.Context, req entity.Report) (entity.Report, error) {
 	req.ID = uuid.NewString()
 	fmt.Println("::::::",req.UserID, req.BusinessID)
@@ -78,7 +76,6 @@ func (r *ReportRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Repor
 	return response, nil
 }
 
-// GetList retrieves a list of reports based on filters
 func (r *ReportRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.ReportList, error) {
 	var response = entity.ReportList{}
 	var createdAt time.Time
@@ -164,7 +161,6 @@ func (r *ReportRepo) GetList(ctx context.Context, req entity.GetListFilter) (ent
 	return response, nil
 }
 
-// Update updates the details of a report
 func (r *ReportRepo) Update(ctx context.Context, req entity.Report) (entity.Report, error) {
 	mp := make(map[string]interface{})
 
@@ -196,7 +192,6 @@ func (r *ReportRepo) Update(ctx context.Context, req entity.Report) (entity.Repo
 	return res, nil
 }
 
-// Delete deletes a report by its ID
 func (r *ReportRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("reports").Where("id = ?", req.ID).ToSql()
 	if err != nil {

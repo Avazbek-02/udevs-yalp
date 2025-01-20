@@ -26,7 +26,6 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 		if token == "" {
 			userRole = "unauthorized"
 		}
-		fmt.Println(token)
 
 		if userRole == "" {
 			
@@ -49,12 +48,9 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 			}
 		}
 
-		// TO DO: Check if session is valid
-
 		if userRole != "unauthorized" {
 			session, err := h.UseCase.SessionRepo.GetSingle(c, entity.Id{ID: c.GetHeader("session_id")})
 			if err != nil {
-				fmt.Println("error while gettign single session", err)
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session is invalid"})
 				return
 			}
@@ -64,7 +60,6 @@ func (h *Handler) AuthMiddleware(e *casbin.Enforcer) gin.HandlerFunc {
 				return
 			}
 		}
-		fmt.Println(userRole)
 		ok, err := e.EnforceSafe(userRole, obj, act)
 		if err != nil {
 			h.Logger.Error(err, "Error enforcing policy")

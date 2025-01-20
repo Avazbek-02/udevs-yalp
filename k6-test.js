@@ -3,9 +3,12 @@ import { check, sleep } from 'k6';
 
 export const options = {
     stages: [
-        { duration: "30", target: 3 },
-        { duration: "20", target: 100 },
-        { duration: "300", target: 50 },
+        { duration: "10s", target: 10 },
+        { duration: "10s", target: 20 },
+        { duration: "10s", target: 30 },
+        { duration: "10s", target: 40 },
+        { duration: "10s", target: 50 },
+        { duration: "10s", target: 60 },
     ],
     cloud: {
         projectID: "3739096",
@@ -75,3 +78,4 @@ export default () => {
     console.log('Register Response:', resRegister.body);
     console.log('Get Single User Response:', resGetSingleUser.body);
 };
+

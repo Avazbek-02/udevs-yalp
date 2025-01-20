@@ -50,7 +50,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		h.ReturnError(ctx, config.ErrorForbidden, "Admin can only login to admin web", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(user.Password)
+	
 	if !hash.CheckPasswordHash(body.Password, user.Password) {
 		h.ReturnError(ctx, config.ErrorInvalidPass, "Incorrect password", http.StatusBadRequest)
 		return

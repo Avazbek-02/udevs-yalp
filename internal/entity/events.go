@@ -22,7 +22,19 @@ type EventList struct {
 	Count  int     `json:"count"`
 }
 
+type EventUsers struct {
+	ID       string `json:"id"`
+	EventID  string `json:"event_id"`
+	FullName string `json:"full_name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	UserType string `json:"user_type"`
+	UserRole string `json:"user_role"`
+	Status   string `json:"status"`
+	Gender   string `json:"gender"`
+}
+
 type EventParticipantList struct {
-	Participants []EventParticipant `json:"participants"`
-	Count        int                `json:"count"`
+	Participants []EventUsers `json:"participants"`
+	Count        int          `json:"count"`
 }

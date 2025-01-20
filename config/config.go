@@ -51,11 +51,16 @@ type (
 		RedisPort int    `env-required:"true" yaml:"port" env:"REDIS_PORT"`
 	}
 
-	Gmail struct{
+	Gmail struct {
 		Email     string `env-required:"true" yaml:"email" env:"EMAIL"`
 		EmailPass string `env-required:"true" yaml:"email_pass" env:"EMAIL_PASS"`
 		Host      string `env-required:"true" yaml:"host" env:"SMTP_HOST"`
-		Port      string    `env-required:"true" yaml:"port" env:"SMTP_PORT"`
+		Port      string `env-required:"true" yaml:"port" env:"SMTP_PORT"`
+	}
+	MinIO struct {
+		MinIOPort      string `env-required:"true" yaml:"minioport" env:"MINIOPORT"`
+		MinIOHost      string `env-required:"true" yaml:"host" env:"MINIOHOST"`
+		MinIOSecredKey string `env-required:"true" yaml:"miniosecredkey" env:"MINIOSECREDKEY"`
 	}
 )
 

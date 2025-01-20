@@ -26,7 +26,7 @@ func NewEventRepo(pg *postgres.Postgres, config *config.Config, logger *logger.L
 	}
 }
 
-// Create adds a new event to the database
+
 func (r *EventRepo) Create(ctx context.Context, req entity.Event) (entity.Event, error) {
 	req.ID = uuid.NewString()
 	query, args, err := r.pg.Builder.Insert("events").
@@ -44,7 +44,6 @@ func (r *EventRepo) Create(ctx context.Context, req entity.Event) (entity.Event,
 	return req, nil
 }
 
-// GetSingle retrieves a single event by ID
 func (r *EventRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Event, error) {
 	var response entity.Event
 	var createdAt time.Time
@@ -67,7 +66,6 @@ func (r *EventRepo) GetSingle(ctx context.Context, req entity.Id) (entity.Event,
 	return response, nil
 }
 
-// GetList retrieves a list of events based on filters
 func (r *EventRepo) GetList(ctx context.Context, req entity.GetListFilter) (entity.EventList, error) {
 	var response entity.EventList
 	var createdAt time.Time
@@ -76,14 +74,12 @@ func (r *EventRepo) GetList(ctx context.Context, req entity.GetListFilter) (enti
 		Select("id, business_id, name, description, date, location, created_at").
 		From("events")
 
-	// Apply filters
+	
 	for _, filter := range req.Filters {
 		if filter.Column == "business_id" && filter.Type == "eq" && filter.Value != "" {
 			queryBuilder = queryBuilder.Where("business_id = ?", filter.Value)
 		}
 	}
-
-	// Apply pagination
 	if req.Limit > 0 {
 		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
 	}
@@ -114,7 +110,7 @@ func (r *EventRepo) GetList(ctx context.Context, req entity.GetListFilter) (enti
 		response.Events = append(response.Events, item)
 	}
 
-	// Count total events
+	
 	countQuery, args, err := r.pg.Builder.
 		Select("COUNT(1)").
 		From("events").
@@ -131,11 +127,9 @@ func (r *EventRepo) GetList(ctx context.Context, req entity.GetListFilter) (enti
 	return response, nil
 }
 
-// Update updates an event
 func (r *EventRepo) Update(ctx context.Context, req entity.Event) (entity.Event, error) {
 	mp := map[string]interface{}{}
 
-	// Ma'lumotlarni qo'shish
 	if req.Name != "" && req.Name != "string" {
 		mp["name"] = req.Name
 	}
@@ -166,7 +160,6 @@ func (r *EventRepo) Update(ctx context.Context, req entity.Event) (entity.Event,
 	return r.GetSingle(ctx, entity.Id{ID: req.ID})
 }
 
-// Delete removes an event by ID
 func (r *EventRepo) Delete(ctx context.Context, id entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("events").Where("id = ?", id).ToSql()
 	if err != nil {
@@ -177,7 +170,6 @@ func (r *EventRepo) Delete(ctx context.Context, id entity.Id) error {
 	return err
 }
 
-// AddParticipant adds a participant to an event
 func (r *EventRepo) AddParticipant(ctx context.Context, req entity.EventParticipant) (entity.EventParticipant, error) {
 	req.ID = uuid.NewString()
 	query, args, err := r.pg.Builder.Insert("event_participants").
@@ -195,7 +187,6 @@ func (r *EventRepo) AddParticipant(ctx context.Context, req entity.EventParticip
 	return req, nil
 }
 
-// RemoveParticipant removes a participant from an event
 func (r *EventRepo) RemoveParticipant(ctx context.Context, req entity.EventParticipant) error {
 	query, args, err := r.pg.Builder.Delete("event_participants").Where("event_id = ? AND user_id = ?", req.EventID, req.UserID).ToSql()
 	if err != nil {
@@ -206,22 +197,31 @@ func (r *EventRepo) RemoveParticipant(ctx context.Context, req entity.EventParti
 	return err
 }
 
-// GetParticipants retrieves participants of an event
 func (r *EventRepo) GetParticipants(ctx context.Context, req entity.GetListFilter) (entity.EventParticipantList, error) {
 	var response entity.EventParticipantList
 
 	queryBuilder := r.pg.Builder.
-		Select("id, event_id, user_id, joined_at").
-		From("event_participants")
+		Select(`
+			event_participants.id, 
+			event_participants.event_id, 
+			users.id AS user_id, 
+			users.full_name, 
+			users.username, 
+			users.email, 
+			users.user_type, 
+			users.user_role, 
+			users.status, 
+			users.gender, 
+			event_participants.joined_at`).
+		From("event_participants").
+		Join("users ON event_participants.user_id = users.id")
 
-	// Apply filters
 	for _, filter := range req.Filters {
 		if filter.Column == "event_id" && filter.Type == "eq" && filter.Value != "" {
-			queryBuilder = queryBuilder.Where("event_id = ?", filter.Value)
+			queryBuilder = queryBuilder.Where("event_participants.event_id = ?", filter.Value)
 		}
 	}
 
-	// Apply pagination
 	if req.Limit > 0 {
 		queryBuilder = queryBuilder.Limit(uint64(req.Limit))
 	}
@@ -242,17 +242,26 @@ func (r *EventRepo) GetParticipants(ctx context.Context, req entity.GetListFilte
 	defer rows.Close()
 
 	for rows.Next() {
-		var participant entity.EventParticipant
+		var participant entity.EventUsers
 		var joinedAt time.Time
-		err = rows.Scan(&participant.ID, &participant.EventID, &participant.UserID, &joinedAt)
+		err = rows.Scan(
+			&participant.ID,
+			&participant.EventID,
+			&participant.ID,
+			&participant.FullName,
+			&participant.Username,
+			&participant.Email,
+			&participant.UserType,
+			&participant.UserRole,
+			&participant.Status,
+			&participant.Gender,
+			&joinedAt)
 		if err != nil {
 			return response, err
 		}
-		participant.JoinedAt = joinedAt.Format(time.RFC3339)
 		response.Participants = append(response.Participants, participant)
 	}
 
-	// Count total participants
 	countQuery, args, err := r.pg.Builder.Select("COUNT(1)").From("event_participants").ToSql()
 	if err != nil {
 		return response, err

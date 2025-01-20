@@ -19,7 +19,6 @@ type BusinessRepo struct {
 	logger *logger.Logger
 }
 
-// NewBusinessRepo creates a new instance of BusinessRepo
 func NewBusinessRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Logger) *BusinessRepo {
 	return &BusinessRepo{
 		pg:     pg,
@@ -28,7 +27,6 @@ func NewBusinessRepo(pg *postgres.Postgres, config *config.Config, logger *logge
 	}
 }
 
-// Create adds a new business entry into the database
 func (r *BusinessRepo) Create(ctx context.Context, req entity.Business) (entity.Business, error) {
 	req.ID = uuid.NewString()
 
@@ -170,8 +168,6 @@ func (r *BusinessRepo) GetList(ctx context.Context, req entity.GetListFilter) (e
 	return response, nil
 }
 
-
-
 func (r *BusinessRepo) Update(ctx context.Context, req entity.Business) (entity.Business, error) {
 	mp := make(map[string]interface{})
 
@@ -218,7 +214,6 @@ func (r *BusinessRepo) Update(ctx context.Context, req entity.Business) (entity.
 	return res, nil
 }
 
-// Delete deletes a business by its I
 func (r *BusinessRepo) Delete(ctx context.Context, req entity.Id) error {
 	query, args, err := r.pg.Builder.Delete("businesses").Where("id = ?", req.ID).ToSql()
 	if err != nil {

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -32,7 +31,6 @@ func (h *Handler) CreateReview(ctx *gin.Context) {
 	}
 	UserId := ctx.GetHeader("sub")
 	req.UserID = UserId
-	fmt.Println(UserId)
 	res, err := h.UseCase.ReviewRepo.Create(ctx, req)
 	if h.HandleDbError(ctx, err, "Error creating review") {
 		return
@@ -103,7 +101,7 @@ func (h *Handler) GetReviews(ctx *gin.Context) {
 		Order:  "desc",
 	})
 	if _, err := uuid.Parse(businessID); err != nil && businessID != "" {
-		ctx.JSON(404,gin.H{"Error:":"Wrong format type please write UUID"})
+		ctx.JSON(404, gin.H{"Error:": "Wrong format type please write UUID"})
 		return
 	}
 
