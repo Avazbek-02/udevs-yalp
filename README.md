@@ -1,2 +1,2 @@
 # udevslab-lesson6
-.env ning yoqligi sababli ishlamasa past baho qoyip tashlamang iltimos
+.env ga malumotlarni .env.exsample dan olizlar va email va parolini qo'yishni unuymang
