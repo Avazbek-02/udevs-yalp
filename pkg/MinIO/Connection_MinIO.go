@@ -3,83 +3,93 @@ package minio
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"golang.org/x/exp/slog"
 )
 
 type MinIO struct {
-	Client *minio.Client
-	Cnf    *config.Config
+	client *minio.Client
+	Cf     *config.Config
 }
 
-var bucketName = "minIO"
+var ContentType = map[string]string{
+	".png": "image/png",
+	".pdf": "application/pdf",
+}
 
-// Connect to MinIO and create a bucket if it doesn't exist
-func MinIOConnect(cnf *config.Config) (*MinIO, error) {
-	cnf := ":9000"
-	accessKeyID := "localhost"
-	secretAccessKey := "minioadmin123"
+func MinIOConnect(cf *config.Config) (*MinIO, error) {
+	endpoint := cf.MinioUrl
+	accessKeyID := cf.MinioUser
+	secretAccessKey := cf.MinIOSecredKey
+	useSSL := false 
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: false,
+		Secure: useSSL,
 	})
 	if err != nil {
-		slog.Error("Failed to connect to MinIO: %v", err)
+		log.Println(err)
 		return nil, err
 	}
 
-	// Create the bucket if it doesn't exist
+	bucketName := cf.MinIOBucketName
+
 	err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 	if err != nil {
-		// Check if the bucket already exists
 		exists, errBucketExists := minioClient.BucketExists(context.Background(), bucketName)
-		if errBucketExists == nil && exists {
-			slog.Warn("Bucket already exists: %s\n", bucketName)
-		} else {
-			slog.Error("Error while making bucket %s: %v\n", bucketName, err)
+		if errBucketExists != nil && exists {
+			log.Println(err)
+			return nil, err
 		}
-	} else {
-		slog.Info("Successfully created bucket: %s\n", bucketName)
 	}
 
 	policy := fmt.Sprintf(`{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Principal": "*",
-				"Action": ["s3:GetObject"],
-				"Resource": ["arn:aws:s3:::%s/*"]
-			}
-		]
-	}`, bucketName)
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": ["s3:GetObject"],
+              "Resource": ["arn:aws:s3:::%s/*"]
+          }
+      ]
+  }`, bucketName)
 
 	err = minioClient.SetBucketPolicy(context.Background(), bucketName, policy)
 	if err != nil {
-		slog.Error("Error while setting bucket policy: %v", err)
+		log.Println("error while setting bucket policy : ", err)
 		return nil, err
 	}
 
 	return &MinIO{
-		Client: minioClient,
-		Cnf:    cnf,
-	}, nil
+		client: minioClient,
+		Cf:     cf,
+	}, err
 }
 
-func (m *MinIO) Upload(fileName, filePath string) (string, error) {
-	contentType := "application/pdf"
+func (m *MinIO) Upload(fileName string, contentType string) (*string, error) {
 
-	_, err := m.Client.FPutObject(context.Background(), bucketName, fileName, filePath, minio.PutObjectOptions{ContentType: contentType})
+	uploadPath := fileName
+	c_type := ContentType[contentType]
+	_, err := m.client.FPutObject(context.Background(), m.Cf.MinIOBucketName, fileName, uploadPath, minio.PutObjectOptions{
+		ContentType: c_type,
+	})
+
 	if err != nil {
-		slog.Error("Error while uploading %s to bucket %s: %v\n", fileName, bucketName, err)
-		return "", err
+		return nil, fmt.Errorf("error while uploading to minio: %v", err)
 	}
 
-	minioURL := fmt.Sprintf("http://localhost:9000/%s/%s", bucketName, fileName)
+	// Delete the media in uploadPath after uploading to minio
+	err = os.Remove(uploadPath)
+	if err != nil {
+		return nil, fmt.Errorf("error while deleting the file: %v", err)
+	}
 
-	return minioURL, nil
+	minioURL := fmt.Sprintf("http://%s/%s/%s", m.Cf.MinioUrl, m.Cf.MinIOBucketName, fileName)
+	
+	return &minioURL, nil
 }

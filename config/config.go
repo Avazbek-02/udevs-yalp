@@ -16,6 +16,7 @@ type (
 		JWT   `yaml:"jwt"`
 		Redis `yaml:"redis"`
 		Gmail `yaml:"gmail"`
+		MinIO `yaml:"minio"`
 	}
 
 	// App -.
@@ -58,9 +59,10 @@ type (
 		Port      string `env-required:"true" yaml:"port" env:"SMTP_PORT"`
 	}
 	MinIO struct {
-		MinIOPort      string `env-required:"true" yaml:"minioport" env:"MINIOPORT"`
-		MinIOHost      string `env-required:"true" yaml:"host" env:"MINIOHOST"`
+		MinioUrl      string `env-required:"true" yaml:"miniourl" env:"MINIOURL"`
+		MinioUser      string `env-required:"true" yaml:"miniouser" env:"MINIOUSER"`
 		MinIOSecredKey string `env-required:"true" yaml:"miniosecredkey" env:"MINIOSECREDKEY"`
+		MinIOBucketName string `env-required:"true" yaml:"minibucketname" env:"MINIOBUCKETNAME"`
 	}
 )
 

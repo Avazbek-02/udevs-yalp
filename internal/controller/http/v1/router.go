@@ -15,6 +15,7 @@ import (
 	_ "github.com/Avazbek-02/udevslab-lesson6/docs"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/controller/http/v1/handler"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase"
+	minio "github.com/Avazbek-02/udevslab-lesson6/pkg/MinIO"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
 	rediscache "github.com/golanguzb70/redis-cache"
 )
@@ -28,12 +29,11 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useCase *usecase.UseCase, redis rediscache.RedisCache) {
-	// Options
+func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useCase *usecase.UseCase, redis rediscache.RedisCache, minio *minio.MinIO) {
 	engine.Use(gin.Logger())
 	engine.Use(gin.Recovery())
 
-	handlerV1 := handler.NewHandler(l, config, useCase, redis)
+	handlerV1 := handler.NewHandler(l, config, useCase, redis,minio)
 
 	e := casbin.NewEnforcer("config/rbac.conf", "config/policy.csv")
 	engine.Use(handlerV1.AuthMiddleware(e))

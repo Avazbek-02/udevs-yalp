@@ -8,16 +8,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	rediscache "github.com/golanguzb70/redis-cache"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	v1 "github.com/Avazbek-02/udevslab-lesson6/internal/controller/http/v1"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/usecase"
+	minio "github.com/Avazbek-02/udevslab-lesson6/pkg/MinIO"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/httpserver"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/logger"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/postgres"
+	rediscache "github.com/golanguzb70/redis-cache"
 )
 
-// Run creates objects via constructors.
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.Log.Level)
 
@@ -42,7 +42,12 @@ func Run(cfg *config.Config) {
 
 	// HTTP Server
 	handler := gin.New()
-	v1.NewRouter(handler, l, cfg, useCase, redis)
+	//minio
+	minio,err  := minio.MinIOConnect(cfg)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - MinIo.New: %w", err))
+	}
+	v1.NewRouter(handler, l, cfg, useCase, redis, minio)
 
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
