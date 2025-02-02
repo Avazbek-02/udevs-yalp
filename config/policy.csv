@@ -1,7 +1,6 @@
 p, unauthorized, /swagger/*, GET
 p, unauthorized, /v1/auth/*, GET|POST
 
-
 p, user, /v1/user/*, GET|POST|PUT|DELETE
 p, user, /v1/user/:id, GET
 p, admin, /v1/user/*, GET|POST|PUT|DELETE

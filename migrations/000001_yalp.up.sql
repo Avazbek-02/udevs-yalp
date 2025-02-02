@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "sessions" (
 
 INSERT INTO "users" (
   "id", "user_type", "user_role", "email", "password_hash", 
-  "username", "full_name", "gender", "status"
+  "username", "full_name", "gender","avatar_id", "status"
 ) VALUES (
   'e1ebed26-59e6-4eb2-bd35-13d504e79cd3',
   'admin',
@@ -46,5 +46,6 @@ INSERT INTO "users" (
   'superadmin',
   'Default Super Admin',
   'male',
+  'admin',
   'active'
 );

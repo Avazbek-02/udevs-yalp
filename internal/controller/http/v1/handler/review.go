@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
@@ -169,4 +170,60 @@ func (h *Handler) DeleteReview(ctx *gin.Context) {
 	ctx.JSON(200, entity.SuccessResponse{
 		Message: "Review deleted successfully",
 	})
+}
+
+// SetReviewImage godoc
+// @Router /review/{id}/image [post]
+// @Summary Set an image for a review
+// @Description Upload an image for a specific review
+// @Tags review
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Review ID"
+// @Param file formData file true "Image file to upload"
+// @Success 200 {object} entity.Review
+// @Failure 400 {object} entity.ErrorResponse
+// @Failure 500 {object} entity.ErrorResponse
+func (h *Handler) SetReviewImage(ctx *gin.Context) {
+	// Review ID validation
+	reviewID := ctx.Param("id")
+	if reviewID == "" {
+		h.ReturnError(ctx, config.ErrorBadRequest, "Review ID is required in path", 400)
+		return
+	}
+
+	// File retrieval
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		h.ReturnError(ctx, config.ErrorBadRequest, "Error getting file", 400)
+		return
+	}
+
+	// Save the file temporarily
+	tempPath := "/tmp/" + file.Filename
+	if err := ctx.SaveUploadedFile(file, tempPath); err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	// Generate a unique filename
+	filename := uuid.New().String() + "-" + file.Filename
+
+	// Upload to MinIO
+	minioURL, err := h.MinIO.Upload(filename, tempPath)
+	if h.HandleDbError(ctx, err, "Error uploading review image") {
+		return
+	}
+
+	updateReq := entity.Review{
+		ID:     reviewID,
+		Photos: minioURL,
+	}
+
+	updatedReview, err := h.UseCase.ReviewRepo.Update(ctx, updateReq)
+	if h.HandleDbError(ctx, err, "Error updating review image") {
+		return
+	}
+
+	ctx.JSON(200, updatedReview)
 }

@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // CreateBusiness godoc
@@ -33,19 +35,18 @@ func (h *Handler) CreateBuisiness(c *gin.Context) {
 	if h.HandleDbError(c, err, "Error creating business") {
 		return
 	}
-	var(
+	var (
 		newUpdateType entity.User
 	)
 	newUpdateType.UserType = "businessman"
 	newUpdateType.ID = req.OwnerID
-	_, err = h.UseCase.UserRepo.Update(c,newUpdateType)
+	_, err = h.UseCase.UserRepo.Update(c, newUpdateType)
 	if h.HandleDbError(c, err, "Error update type user in business") {
 		return
 	}
 	c.Request.Header.Set("user_type", "businessman")
 	c.JSON(200, res)
 }
-
 
 // GetBusiness godoc
 // @Router /business/{id} [get]
@@ -178,4 +179,58 @@ func (h *Handler) DeleteBusiness(ctx *gin.Context) {
 	ctx.JSON(200, entity.SuccessResponse{
 		Message: "Business deleted successfully",
 	})
+}
+
+// SetBusinessImage godoc
+// @Router /business/{id}/image [post]
+// @Summary Set an image for a business
+// @Description Upload an image for a specific business
+// @Tags business
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Business ID"
+// @Param file formData file true "Image file to upload"
+// @Success 200 {object} entity.Business
+// @Failure 400 {object} entity.ErrorResponse
+// @Failure 500 {object} entity.ErrorResponse
+func (h *Handler) SetBusinessImage(ctx *gin.Context) {
+	// Biznes ID ni olish
+	businessID := ctx.Param("id")
+	if businessID == "" {
+		h.ReturnError(ctx, config.ErrorBadRequest, "Business ID is required in path", 400)
+		return
+	}
+
+	// Faylni olish
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		h.ReturnError(ctx, config.ErrorBadRequest, "Error getting file", 400)
+		return
+	}
+
+	tempPath := "/tmp/" + file.Filename 
+	if err := ctx.SaveUploadedFile(file, tempPath); err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	filename := uuid.New().String() + "-" + file.Filename
+
+	minioURL, err := h.MinIO.Upload(filename, tempPath)
+	if h.HandleDbError(ctx, err, "Error updating business image") {
+		return
+	}
+
+	updateReq := entity.Business{
+		ID:     businessID,
+		Photos: minioURL,
+	}
+
+	updatedBusiness, err := h.UseCase.BusinessRepo.Update(ctx, updateReq)
+	if h.HandleDbError(ctx, err, "Error updating business image") {
+		return
+	}
+
+	ctx.JSON(200, updatedBusiness)
 }

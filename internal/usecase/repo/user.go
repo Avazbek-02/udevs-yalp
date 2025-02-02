@@ -31,7 +31,7 @@ func NewUserRepo(pg *postgres.Postgres, config *config.Config, logger *logger.Lo
 
 func (r *UserRepo) Create(ctx context.Context, req entity.User) (entity.User, error) {
 	req.ID = uuid.NewString()
-
+	fmt.Println(req.UserType)
 	qeury, args, err := r.pg.Builder.Insert("users").
 		Columns(`id, full_name, email, bio, username, password_hash, user_type, user_role, status, avatar_id, gender`).
 		Values(req.ID, req.FullName, req.Email, req.Bio, req.Username, req.Password, req.UserType, req.UserRole, req.Status, req.AvatarId, req.Gender).ToSql()

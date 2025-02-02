@@ -23,21 +23,21 @@ services:
     networks:
       - udevslabs-yalp
 
-  minio:
-    container_name: minio
-    image: minio/minio:latest
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    networks:
-      - udevslabs-yalp
-    volumes:
-      - 'minio_data:/data'
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-      - MINIO_DEFAULT_BUCKETS=user
-    command: server /data  # Make sure MinIO server uses the correct path
+  # minio:
+  #   container_name: minio
+  #   image: minio/minio:latest
+  #   ports:
+  #     - '9000:9000'
+  #     - '9001:9001'
+  #   networks:
+  #     - udevslabs-yalp
+  #   volumes:
+  #     - 'minio_data:/data'
+  #   environment:
+  #     - MINIO_ROOT_USER=minioadmin
+  #     - MINIO_ROOT_PASSWORD=minioadmin
+  #     - MINIO_DEFAULT_BUCKETS=user
+  #   command: server /data 
 
 networks:
   udevslabs-yalp:
@@ -46,5 +46,5 @@ networks:
 
 volumes:
   postgres_data:
-  minio_data:
-    driver: local
+  # minio_data:
+  #   driver: local
