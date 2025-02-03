@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
+	"log/slog"
+	"path/filepath"
 
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/minio/minio-go/v7"
@@ -16,16 +17,22 @@ type MinIO struct {
 	Cf     *config.Config
 }
 
+// ContentType map now supports a wider range of image formats
 var ContentType = map[string]string{
-	".png": "image/png",
-	".pdf": "application/pdf",
+	".png":  "image/png",
+	".jpg":  "image/jpeg",
+	".jpeg": "image/jpeg",
+	".gif":  "image/gif",
+	".bmp":  "image/bmp",
+	".webp": "image/webp",
+	".tiff": "image/tiff",
 }
 
 func MinIOConnect(cf *config.Config) (*MinIO, error) {
 	endpoint := cf.MinioUrl
 	accessKeyID := cf.MinioUser
 	secretAccessKey := cf.MinIOSecredKey
-	useSSL := false 
+	useSSL := false
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
@@ -71,25 +78,26 @@ func MinIOConnect(cf *config.Config) (*MinIO, error) {
 	}, err
 }
 
-func (m *MinIO) Upload(fileName string, contentType string) (*string, error) {
-
-	uploadPath := fileName
-	c_type := ContentType[contentType]
-	_, err := m.client.FPutObject(context.Background(), m.Cf.MinIOBucketName, fileName, uploadPath, minio.PutObjectOptions{
-		ContentType: c_type,
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("error while uploading to minio: %v", err)
+func (m *MinIO) Upload(fileName, filePath string) (string, error) {
+	// Fayl kengaytmasini olish
+	ext := filepath.Ext(fileName)
+	contentType, ok := ContentType[ext]
+	if !ok {
+		// Agar kengaytma mos kelmasa, default ContentType qo'yamiz
+		contentType = "application/octet-stream"
 	}
 
-	// Delete the media in uploadPath after uploading to minio
-	err = os.Remove(uploadPath)
+	cfg, _ := config.NewConfig()
+
+	// Faylni MinIOga yuklash
+	_, err := m.client.FPutObject(context.Background(), cfg.MinIOBucketName, fileName, filePath, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
-		return nil, fmt.Errorf("error while deleting the file: %v", err)
+		slog.Error("Error while uploading file", "fileName", fileName, "bucket", cfg.MinIOBucketName, "error", err)
+		return "", err
 	}
 
-	minioURL := fmt.Sprintf("http://%s/%s/%s", m.Cf.MinioUrl, m.Cf.MinIOBucketName, fileName)
-	
-	return &minioURL, nil
+	// MinIO URLni yaratish
+	minioURL := fmt.Sprintf("http://localhost:9000/%s/%s", cfg.MinIOBucketName, fileName)
+
+	return minioURL, nil
 }

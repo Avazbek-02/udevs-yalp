@@ -53,6 +53,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		user.GET("/list", handlerV1.GetUsers)
 		user.GET("/:id", handlerV1.GetUser)
 		user.PUT("/", handlerV1.UpdateUser)
+		user.POST("/avatar", handlerV1.SetUserAvatar)
 		user.DELETE("/:id", handlerV1.DeleteUser)
 	}
 
@@ -78,6 +79,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		business.GET("/list", handlerV1.GetBusinesses)
 		business.PUT("/", handlerV1.UpdateBusiness)
 		business.DELETE("/:id", handlerV1.DeleteBusiness)
+		business.POST("/:id/image", handlerV1.SetBusinessImage)
 	}
 
 	review := v1.Group("/review")
@@ -87,6 +89,7 @@ func NewRouter(engine *gin.Engine, l *logger.Logger, config *config.Config, useC
 		review.GET("/list", handlerV1.GetReviews)
 		review.PUT("/", handlerV1.UpdateReview)
 		review.DELETE("/:id", handlerV1.DeleteReview)
+		review.POST("/:id/image", handlerV1.SetReviewImage)
 	}
 
 	report := v1.Group("/report")

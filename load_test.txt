@@ -1,0 +1,14 @@
+10% cpu 512mg ram 100vus = 41 98%
+20% cpu 512mg ram 100vus = 115 100%
+20% cpu 512mg ram 200vus = 128 99%
+50% cpu 512mg ram 200vus = 469 100%
+50% cpu 512mg ram 500vus = 429 99%
+50% cpu 512mg ram 1000vus = 386 97%
+
+
+
+
+horizan
+
+5 ta server 20%cpu  512ram 500 vus = 802 100%
+5 ta server 20%cpu  1Gb ram 500 vus = 760 100%

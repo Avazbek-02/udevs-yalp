@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Avazbek-02/udevslab-lesson6/config"
 	"github.com/Avazbek-02/udevslab-lesson6/internal/entity"
 	"github.com/Avazbek-02/udevslab-lesson6/pkg/hash"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // CreateUser godoc
@@ -39,7 +41,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 	user, err := h.UseCase.UserRepo.Create(ctx, body)
 	if h.HandleDbError(ctx, err, "Error creating user") {
-		return//df
+		return //df
 	}
 
 	ctx.JSON(201, user)
@@ -62,7 +64,6 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	)
 
 	req.ID = ctx.Param("id")
-
 
 	user, err := h.UseCase.UserRepo.GetSingle(ctx, req)
 	if h.HandleDbError(ctx, err, "Error getting user") {
@@ -199,4 +200,89 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(200, entity.SuccessResponse{
 		Message: "User deleted successfully",
 	})
+}
+
+// UploadImage godoc
+// @Router /user/upload [post]
+// @Summary Upload an image to MinIO
+// @Description Upload an image to MinIO without saving data to the database
+// @Security BearerAuth
+// @Tags upload
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Image file to upload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+func (h *Handler) UploadImage(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	filename := uuid.New().String() + "-" + file.Filename
+
+	tempPath := "/tmp/" + filename
+	if err := c.SaveUploadedFile(file, tempPath); err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	minioURL, err := h.MinIO.Upload(filename, tempPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(200, gin.H{"worked": minioURL})
+}
+
+// SetUserAvatar godoc
+// @Router /user/avatar [post]
+// @Summary Set user avatar
+// @Description Upload an avatar to MinIO and update user's avatar ID in the database
+// @Security BearerAuth
+// @Tags user
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Avatar image file"
+// @Success 200 {object} entity.User
+// @Failure 400 {object} entity.ErrorResponse
+// @Failure 500 {object} entity.ErrorResponse
+func (h *Handler) SetUserAvatar(ctx *gin.Context) {
+	userID := ctx.GetHeader("sub")
+	if userID == "" {
+		h.ReturnError(ctx, config.ErrorUnauthorized, "User ID is required in header", 401)
+		return
+	}
+
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+	filename := uuid.New().String() + "-" + file.Filename
+
+	tempPath := "/tmp/" + file.Filename 
+	if err := ctx.SaveUploadedFile(file, tempPath); err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	minioURL, err := h.MinIO.Upload(filename, tempPath)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	updateReq := entity.User{
+		ID:       userID,
+		AvatarId: minioURL,
+	}
+
+	updatedUser, err := h.UseCase.UserRepo.Update(ctx, updateReq)
+	if h.HandleDbError(ctx, err, "Error updating user avatar") {
+		return
+	}
+
+	ctx.JSON(200, updatedUser)
 }
