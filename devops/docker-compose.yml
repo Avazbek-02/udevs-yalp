@@ -29,7 +29,7 @@ services:
     environment:
       CLICKHOUSE_DB: yalp
       CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: ""  
+      CLICKHOUSE_PASSWORD: "1234"  
     ports:
       - "9002:9002"  
       - "8123:8123" 
