@@ -23,6 +23,21 @@ services:
     networks:
       - udevslabs-yalp
 
+  udevslabs-yalp-clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: udevslabs-yalp-clickhouse
+    environment:
+      CLICKHOUSE_DB: yalp
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""  
+    ports:
+      - "9002:9002"  
+      - "8123:8123" 
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - udevslabs-yalp
+
   # minio:
   #   container_name: minio
   #   image: minio/minio:latest
@@ -46,5 +61,6 @@ networks:
 
 volumes:
   postgres_data:
+  clickhouse_data:
   # minio_data:
   #   driver: local
