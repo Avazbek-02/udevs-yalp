@@ -1,2 +1,2 @@
-# udevslab-lesson6
+# udevslab-yalp
 .env ga malumotlarni .env.exsample dan olizlar va email va parolini qo'yishni unuymang
