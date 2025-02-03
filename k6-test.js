@@ -46,7 +46,7 @@ export default () => {
 
     let registerParams = {
         headers: {
-            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImF2YXpiZWttYW1iZXRvdjlAZ21haWwuY29tIiwicGxhdGZvcm0iOiJ3ZWIiLCJzZXNzaW9uX2lkIjoiNTcxN2U3NTEtZGM4OS00NTYyLTkzZjMtMmIwY2I5MDkxMjdkIiwic3ViIjoiM2IxZDk2MmMtNjNhMi00ZWIxLThmMWMtNjI3NGZhN2RkYmE4IiwidXNlcl9yb2xlIjoidXNlciIsInVzZXJfdHlwZSI6InVzZXIifQ.epGje5xNHwPGvXabwQwZLZFrSRj3NiEzKkwacLQcpSU`,
+            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybSI6IndlYiIsInNlc3Npb25faWQiOiI4NjZlZGNlYS0zYzkxLTQwNjctOTY1NS1lYzM5MmQyYzZhMTQiLCJzdWIiOiI1MDM1OTQ0MS04YjdkLTQ1ZWItYTgzZC04MjMxMmJlOGM5NWQiLCJ1c2VyX3JvbGUiOiJ1c2VyIiwidXNlcl90eXBlIjoidXNlciJ9.7mOZOXkDMX1qX9jglq4ZDcGm_35FqQuzVW0BAfYk9qM`,
             "Content-Type": "application/json",
         }
     };
@@ -60,7 +60,7 @@ export default () => {
     //     "status code 201": (r) => r.status === 201
     // });
 
-    const resGetSingleUser = http.get(`http://localhost:8080/v1/user/3b1d962c-63a2-4eb1-8f1c-6274fa7ddba8`, registerParams);
+    const resGetSingleUser = http.get(`http://localhost:8080/v1/user/50359441-8b7d-45eb-a83d-82312be8c95d`, registerParams);
 
     check(resGetSingleUser, {
         "status code 200": (r) => r.status === 200

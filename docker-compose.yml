@@ -14,6 +14,7 @@ services:
       - app3
       - app4
       - app5
+      - app6
 
   minio:
     container_name: minio
@@ -24,9 +25,10 @@ services:
       - "9000:9000"
       - "9001:9001"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
     environment:
       MINIO_ROOT_USER: "minioadmin"
       MINIO_ROOT_PASSWORD: "minioadmin"
@@ -49,9 +51,10 @@ services:
       - minio
     cpuset: "0"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000 
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
 
   app2:
     build: .
@@ -66,9 +69,10 @@ services:
       - minio
     cpuset: "1"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
 
   app3:
     build: .
@@ -83,9 +87,10 @@ services:
       - minio
     cpuset: "2"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
 
   app4:
     build: .
@@ -100,9 +105,10 @@ services:
       - minio
     cpuset: "3"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
 
   app5:
     build: .
@@ -117,9 +123,27 @@ services:
       - minio
     cpuset: "4"
     cpu_period: 100000
-    cpu_quota: 10000
-    mem_limit: 512M
-    mem_reservation: 256M
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
+  app6:
+    build: .
+    container_name: udevs-yalp-6
+    env_file:
+      - .env  
+    ports:
+      - "8086:8080"
+    networks:
+      - udevslabs-yalp
+    depends_on:
+      - minio
+    cpuset: "5"
+    cpu_period: 100000
+    cpu_quota: 20000
+    mem_limit: 1G
+    mem_reservation: 512M
+    restart: unless-stopped
 
 networks:
   udevslabs-yalp:

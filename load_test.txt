@@ -10,3 +10,5 @@
 
 horizan
 
+5 ta server 20%cpu  512ram 500 vus = 802 100%
+5 ta server 20%cpu  1Gb ram 500 vus = 760 100%
