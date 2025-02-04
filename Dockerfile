@@ -13,8 +13,9 @@ RUN go mod download
 # Copy the rest of the application code
 COPY . .
 
+
 # Build the Go binary
-RUN GOOS=linux GOARCH=amd64 go build -tags migrate -o openbudgetbinary ./cmd/app
+RUN GOOS=linux GOARCH=amd64 go build -tags migrate -o yalp ./cmd/app
 
 # Step 2: Create a lightweight image to run the binary
 FROM alpine:latest
@@ -23,12 +24,14 @@ FROM alpine:latest
 WORKDIR /app
 
 # # Copy the binary from the builder stage
-COPY --from=builder /app/openbudgetbinary /app/
+COPY --from=builder /app/yalp /app/
 COPY --from=builder /app/config /app/config
 COPY --from=builder /app/migrations /app/migrations
+
+
 
 # Expose the port your application uses (optional)
 EXPOSE 8080
 
 # Command to run the binary
-CMD ["/app/openbudgetbinary"]
+CMD ["/app/yalp"]

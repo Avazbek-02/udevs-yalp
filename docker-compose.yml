@@ -1,21 +1,4 @@
 services:
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "8080:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - app1
-      - app2
-      - app3
-      - app4
-      - app5
-      - app6
-
   minio:
     container_name: minio
     image: quay.io/minio/minio:latest
@@ -52,95 +35,6 @@ services:
     cpuset: "0"
     cpu_period: 100000
     cpu_quota: 20000 
-    mem_limit: 1G
-    mem_reservation: 512M
-    restart: unless-stopped
-
-  app2:
-    build: .
-    container_name: udevs-yalp-2
-    env_file:
-      - .env  
-    ports:
-      - "8082:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - minio
-    cpuset: "1"
-    cpu_period: 100000
-    cpu_quota: 20000
-    mem_limit: 1G
-    mem_reservation: 512M
-    restart: unless-stopped
-
-  app3:
-    build: .
-    container_name: udevs-yalp-3
-    env_file:
-      - .env  
-    ports:
-      - "8083:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - minio
-    cpuset: "2"
-    cpu_period: 100000
-    cpu_quota: 20000
-    mem_limit: 1G
-    mem_reservation: 512M
-    restart: unless-stopped
-
-  app4:
-    build: .
-    container_name: udevs-yalp-4
-    env_file:
-      - .env  
-    ports:
-      - "8084:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - minio
-    cpuset: "3"
-    cpu_period: 100000
-    cpu_quota: 20000
-    mem_limit: 1G
-    mem_reservation: 512M
-    restart: unless-stopped
-
-  app5:
-    build: .
-    container_name: udevs-yalp-5
-    env_file:
-      - .env  
-    ports:
-      - "8085:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - minio
-    cpuset: "4"
-    cpu_period: 100000
-    cpu_quota: 20000
-    mem_limit: 1G
-    mem_reservation: 512M
-    restart: unless-stopped
-  app6:
-    build: .
-    container_name: udevs-yalp-6
-    env_file:
-      - .env  
-    ports:
-      - "8086:8080"
-    networks:
-      - udevslabs-yalp
-    depends_on:
-      - minio
-    cpuset: "5"
-    cpu_period: 100000
-    cpu_quota: 20000
     mem_limit: 1G
     mem_reservation: 512M
     restart: unless-stopped

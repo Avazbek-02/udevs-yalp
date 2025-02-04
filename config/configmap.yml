@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yalp-env
+data:
+  APP_NAME: "Yalp"
+  HTTP_PORT: "8080"
+  PG_POOL_MAX: "10"
+  PG_URL: "postgres://postgres:1234@postgres-service:5432/yalp"
+  JWT_SECRET: "secred"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  DISABLE_SWAGGER_HTTP_HANDLER: "true"
+  GIN_MODE: "release"
+  EMAIL: "apalonavalon@gmail.com"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+  MINIOURL: "http://minio-service:9000"
+  MINIOUSER: "minioadmin"
+  MINIOSECREDKEY: "minioadmin"
+  MINIOBUCKETNAME: "user"

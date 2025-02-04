@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yalp-app
+  template:
+    metadata:
+      labels:
+        app: yalp-app
+    spec:
+      containers:
+        - name: yalp-app
+          image: avazbek0292/yalp:latest
+          envFrom:
+            - configMapRef:
+                name: yalp-env
+            - secretRef:
+                name: yalp-secrets
+          ports:
+            - containerPort: 8080

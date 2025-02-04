@@ -91,3 +91,15 @@ mig-down:
 
 mig-force:
 	migrate -database 'postgres://postgres:1234@localhost:5432/yalp?sslmode=disable' -path ./migrations force 1
+
+
+.PHONY: update-kuber
+
+update-kuber:
+	kubectl apply -f config/configmap.yml 
+	kubectl apply -f config/yalp-secrets.yaml 
+	kubectl apply -f devops/postgres.yaml   
+	kubectl apply -f devops/redis.yaml   
+	kubectl apply -f devops/minio.yaml   
+	kubectl apply -f apps.yml     
+	
