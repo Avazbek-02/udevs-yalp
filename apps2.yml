@@ -1,0 +1,82 @@
+# Go Application ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_NAME: "Yalp"
+  HTTP_PORT: "8080"
+  PG_POOL_MAX: "10"
+  PG_URL: "postgres://postgres:1234@postgres:5432/yalp"
+  JWT_SECRET: "secred"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  DISABLE_SWAGGER_HTTP_HANDLER: "true"
+  GIN_MODE: "release"
+  EMAIL: "apalonavalon@gmail.com"
+  EMAIL_PASS: "ethl zriq smje ajkf"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+  MINIOURL: "minio:9000"
+  MINIOUSER: "minioadmin"
+  MINIOSECREDKEY: "minioadmin"
+  MINIOBUCKETNAME: "user"
+---
+# Go Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yalp
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: yalp
+  template:
+    metadata:
+      labels:
+        app: yalp
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:latest
+        command: ['sh', '-c', 
+          'until pg_isready -h postgres -p 5432 -U postgres; do echo waiting for postgres; sleep 2; done;']
+      - name: wait-for-redis
+        image: busybox:1.28
+        command: ['sh', '-c', 'until telnet redis 6379; do echo waiting for redis; sleep 2; done']
+      - name: wait-for-minio
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nc -z minio 9000; do echo waiting for minio; sleep 2; done']
+      containers:
+      - name: yalp
+        image: avazbek0292/yalp:latest
+        envFrom:
+        - configMapRef:
+            name: app-config
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: "200m"
+            memory: 1Gi
+          requests:
+            cpu: "100m"
+            memory: 512Mi
+---
+# Go Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: yalp
+spec:
+  selector:
+    app: yalp
+  ports:
+  - port: 8080
+    targetPort: 8080
