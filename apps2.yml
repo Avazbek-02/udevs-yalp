@@ -11,7 +11,7 @@ data:
   JWT_SECRET: "secred"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
-  DISABLE_SWAGGER_HTTP_HANDLER: "true"
+  DISABLE_SWAGGER_HTTP_HANDLER: "false"
   GIN_MODE: "release"
   EMAIL: "apalonavalon@gmail.com"
   EMAIL_PASS: "ethl zriq smje ajkf"
@@ -75,8 +75,10 @@ kind: Service
 metadata:
   name: yalp
 spec:
+  type: NodePort
   selector:
     app: yalp
   ports:
-  - port: 8080
-    targetPort: 8080
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
