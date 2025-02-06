@@ -1,0 +1,18 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: my-knative
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: avazbek0292/yalp:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PG_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: PG_URL
